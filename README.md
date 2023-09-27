@@ -22,6 +22,7 @@ Data Science Pipeline stacks onto individual OCP namespaces.
    2. [Cleanup Standalone Installation](#cleanup-standalone-installation)
 5. [Run tests](#run-tests)
 6. [Metrics](#metrics)
+7. [Deployment and Testing Guidelines for Developers](#deployment-and-testing-guidelines-for-developers)
 
 # Quickstart
 
@@ -467,3 +468,20 @@ They are as follows:
 [flipcoin code example]: https://github.com/opendatahub-io/data-science-pipelines-operator/blob/main/docs/example_pipelines/condition.py
 [installodh]: https://opendatahub.io/docs/quick-installation
 [kfp-tekton]: https://github.com/kubeflow/kfp-tekton
+
+# Deployment and Testing Guidelines for Developers
+
+To run the DSPO locally :
+
+Clone the directory and execute the following command:
+
+```bash
+go run main.go --config=$config.yaml
+```
+To run the tests:
+ 
+Execute `make test` or `make unittest` or `make functest` based on the level of testing that needs to be done.
+
+To deploy DSPO as a developer :
+
+Follow the instructions from [here](#deploy-the-operator-standalone) to deploy the operator standalone.
