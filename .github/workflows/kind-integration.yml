@@ -23,6 +23,7 @@ concurrency:
 env:
   IMAGE_REPO_DSPO: data-science-pipelines-operator
   DSPA_NAMESPACE: test-dspa
+  MINIO_NAMESPACE: test-minio
   DSPA_NAME: test-dspa
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
@@ -75,6 +76,15 @@ jobs:
         run: |
           make podman-push -e IMG="${DSPO_IMAGE}"
           make deploy-kind -e IMG="${DSPO_IMAGE}"
+      
+      - name: Create Minio Namespace
+        run: |
+          kubectl create namespace ${{ env.MINIO_NAMESPACE }}
+      
+      - name: Deploy Minio
+        working-directory: ${{ github.workspace }}/.github/resources/minio
+        run: |
+          kustomize build . |  oc -n ${{ env.MINIO_NAMESPACE }} apply -f -
 
       - name: Wait for DSPO and Argo deployment
         run: |
