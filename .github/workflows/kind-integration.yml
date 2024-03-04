@@ -89,8 +89,7 @@ jobs:
       - name: Wait for DSPO and Argo deployment
         run: |
           kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
-          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment argo-server
-          kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
+          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment argo-server          
 
       - name: Get Minio Route
         id: get_minio_route
