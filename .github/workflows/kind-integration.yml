@@ -99,7 +99,7 @@ jobs:
       
       - name: Update DSPA-Lite YAML
         run: |
-          sed -i "s|{{MINIO_ROUTE_PLACEHOLDER}}|${{ steps.get_minio_route.outputs.minio_route }}|g" resources/dspa-lite/dspa.yaml
+          sed -i "s|{{MINIO_ROUTE_PLACEHOLDER}}|${{ steps.get_minio_route.outputs.minio_route }}|g" tests/resources/dspa-lite.yaml
 
       - name: Create DSPA Namespace
         run: |

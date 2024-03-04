@@ -64,14 +64,12 @@ spec:
           cpu: 20m
           memory: 100m
   objectStorage:
-    minio:
-      deploy: true
-      image: 'quay.io/opendatahub/minio:RELEASE.2019-08-14T20-37-41Z-license-compliance'
-      pvcSize: 500Mi
-      resources:
-        limits:
-          cpu: 20m
-          memory: 500Mi
-        requests:
-          cpu: 20m
-          memory: 100m
+    externalStorage:
+      bucket: mlpipeline
+      host: minio-secure-test-minio.apps.vmudadla.dev.datahub.redhat.com
+      region: us-east-2
+      s3CredentialsSecret:
+        accessKey: accesskey
+        secretKey: secretkey
+        secretName: minio
+      scheme: https
