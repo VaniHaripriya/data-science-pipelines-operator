@@ -110,7 +110,11 @@ jobs:
       - name: Create DSPA Namespace with External Connections
         run: |
           kubectl create namespace ${{ env.DSPA_NAMESPACE_EXTERNAL }}
-
+      
+      - name: Create Minio Secrets
+        run: |
+          kubectl create secret generic minio --from-literal=accesskey=accesskey --from-literal=secretkey=secretkey -n ${{ env.DSPA_NAMESPACE_EXTERNAL }}
+      
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
