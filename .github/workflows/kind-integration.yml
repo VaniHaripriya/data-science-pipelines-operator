@@ -121,7 +121,7 @@ jobs:
           NAMESPACE: ${{ env.DSPA_NAMESPACE }}
           DSPA_NAME: ${{ env.DSPA_NAME }}
         run: |
-          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
+          make integrationtest_dspa K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
 
       - name: Run tests for DSPA with External Connections
         working-directory: ${{ github.workspace }}
@@ -129,7 +129,7 @@ jobs:
           NAMESPACE: ${{ env.DSPA_NAMESPACE_EXTERNAL }}
           DSPA_NAME: ${{ env.DSPA_NAME_EXTERNAL }}
         run: |
-          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
+          make integrationtest_dspa_external K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
 
       - name: Clean up
         run: |
