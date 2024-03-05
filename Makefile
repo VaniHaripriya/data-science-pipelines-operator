@@ -62,6 +62,7 @@ KUBECONFIGPATH ?= $(HOME)/.kube/config
 K8SAPISERVERHOST ?= http://localhost:6443
 DSPANAMESPACE ?= default
 DSPAPATH ?= resources/dspa-lite.yaml
+DSPAEXTERNALPATH ?= resources/externalstorage/dspa-external-lite.yaml
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -125,10 +126,15 @@ unittest: manifests generate fmt vet envtest ## Run tests.
 functest: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... --tags=test_functional -coverprofile cover.out
 
-.PHONY: integrationtest
-integrationtest: ## Run integration tests
+.PHONY: integrationtest_dspa
+integrationtest_dspa: ## Run integration tests
 	cd tests && \
 	go run github.com/onsi/ginkgo/v2/ginkgo --tags=test_integration -- -kubeconfig=${KUBECONFIGPATH} -k8sApiServerHost=${K8SAPISERVERHOST} -DSPANamespace=${DSPANAMESPACE} -DSPAPath=${DSPAPATH} -ginkgo.v
+
+.PHONY: integrationtest_dspa_external
+integrationtest_dspa_external: ## Run integration tests
+	cd tests && \
+	go run github.com/onsi/ginkgo/v2/ginkgo --tags=test_integration -- -kubeconfig=${KUBECONFIGPATH} -k8sApiServerHost=${K8SAPISERVERHOST} -DSPANamespace=${DSPANAMESPACE} -DSPAPath=${DSPAEXTERNALPATH} -ginkgo.v
 
 ##@ Build
 

@@ -23,8 +23,10 @@ concurrency:
 env:
   IMAGE_REPO_DSPO: data-science-pipelines-operator
   DSPA_NAMESPACE: test-dspa
+  DSPA_NAMESPACE_EXTERNAL: test-dspa-external
   MINIO_NAMESPACE: test-minio
   DSPA_NAME: test-dspa
+  DSPA_NAME_EXTERNAL: test-dspa-external
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
 jobs:
@@ -105,11 +107,23 @@ jobs:
         run: |
           kubectl create namespace ${{ env.DSPA_NAMESPACE }}
 
+      - name: Create DSPA Namespace with External Connections
+        run: |
+          kubectl create namespace ${{ env.DSPA_NAMESPACE_EXTERNAL }}
+
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
           NAMESPACE: ${{ env.DSPA_NAMESPACE }}
           DSPA_NAME: ${{ env.DSPA_NAME }}
+        run: |
+          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
+
+      - name: Run tests for DSPA with External Connections
+        working-directory: ${{ github.workspace }}
+        env:
+          NAMESPACE: ${{ env.DSPA_NAMESPACE_EXTERNAL }}
+          DSPA_NAME: ${{ env.DSPA_NAME_EXTERNAL }}
         run: |
           make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
 
