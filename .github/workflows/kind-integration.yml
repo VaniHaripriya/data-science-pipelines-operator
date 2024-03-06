@@ -22,8 +22,7 @@ concurrency:
 
 env:
   IMAGE_REPO_DSPO: data-science-pipelines-operator
-  DSPA_NAMESPACE: test-dspa
-  DSPA_NAMESPACE_EXTERNAL: test-dspa-external
+  DSPA_NAMESPACE: test-dspa  
   MINIO_NAMESPACE: test-minio
   DSPA_NAME: test-dspa  
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
@@ -104,11 +103,7 @@ jobs:
 
       - name: Create DSPA Namespace
         run: |
-          kubectl create namespace ${{ env.DSPA_NAMESPACE }}
-
-      - name: Create DSPA Namespace with External Connections
-        run: |
-          kubectl create namespace ${{ env.DSPA_NAMESPACE_EXTERNAL }}
+          kubectl create namespace ${{ env.DSPA_NAMESPACE }}      
       
       - name: Create Minio Secrets
         run: |
