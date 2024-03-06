@@ -27,6 +27,8 @@ env:
   DSPA_NAME: test-dspa  
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
+  DSPA_PATH: ${{ github.workspace }}/tests/resources
+  DSPA_EXTERNAL_PATH: ${{ github.workspace }}/tests/resources/external
 jobs:
   dspo-tests:
     runs-on: ubuntu-20.04
@@ -114,8 +116,20 @@ jobs:
         env:
           NAMESPACE: ${{ env.DSPA_NAMESPACE }}
           DSPA_NAME: ${{ env.DSPA_NAME }}
+          DSPA_PATH: ${{ env.DSPA_PATH}}
+          DSPA_EXTENAL_PATH: ${{ env.DSPA_EXTENAL_PATH}}
         run: |
-          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
+          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_PATH}
+
+      - name: Run tests
+        working-directory: ${{ github.workspace }}
+        env:
+          NAMESPACE: ${{ env.DSPA_NAMESPACE }}
+          DSPA_NAME: ${{ env.DSPA_NAME }}
+          DSPA_PATH: ${{ env.DSPA_PATH}}
+          DSPA_EXTENAL_PATH: ${{ env.DSPA_EXTENAL_PATH}}
+        run: |
+          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_EXTERNAL_PATH}
 
       - name: Clean up
         run: |
