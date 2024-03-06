@@ -27,7 +27,7 @@ env:
   DSPA_NAME: test-dspa  
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
-  DSPA_PATH: ${{ github.workspace }}/tests/resources
+  DSPA_PATH: /tests/resources
   DSPA_EXTERNAL_PATH: ${{ github.workspace }}/tests/resources/external
 jobs:
   dspo-tests:
