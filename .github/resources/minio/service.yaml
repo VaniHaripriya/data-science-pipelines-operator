@@ -1,9 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: minio
-  annotations:
-    service.beta.openshift.io/serving-cert-secret-name: minio-certs
+  name: minio  
 spec:
   ports:
     - name: https

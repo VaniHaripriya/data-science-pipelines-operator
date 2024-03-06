@@ -15,24 +15,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: minio
-        - name: cabundle
-          configMap:
-            # Automatically created in every ocp namespace
-            name: config-service-cabundle
-            items:
-              - key: service-ca.crt
-                path: public.crt
-            defaultMode: 420
-        - name: minio-certs
-          secret:
-            secretName: minio-certs
-            items:
-              - key: tls.crt
-                path: public.crt
-              - key: tls.key
-                path: private.key
-            defaultMode: 420
+            claimName: minio        
       containers:
         - resources:
             limits:
@@ -60,17 +43,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-              subPath: minio
-            - name: minio-certs
-              mountPath: /.minio/certs
-            - name: cabundle
-              mountPath: /.minio/certs/CAs
+              subPath: minio          
           image: 'quay.io/minio/minio:RELEASE.2023-10-16T04-13-43Z'
           args:
             - server
-            - /data
-            - '--certs-dir'
-            - /.minio/certs
+            - /data            
             - --console-address
             - ":9001"
   strategy:
