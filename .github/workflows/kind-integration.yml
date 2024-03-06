@@ -99,7 +99,7 @@ jobs:
       
       - name: Update DSPA-Lite YAML
         run: |
-          sed -i "s|{{MINIO_ROUTE_PLACEHOLDER}}|${{ steps.get_minio_route.outputs.minio_route }}|g" tests/resources/dspa-lite.yaml
+          sed -i "s|{{MINIO_ROUTE_PLACEHOLDER}}|${{ steps.get_minio_route.outputs.minio_route }}|g" tests/resources/dspa-external-lite.yaml
 
       - name: Create DSPA Namespace
         run: |
@@ -115,7 +115,7 @@ jobs:
           NAMESPACE: ${{ env.DSPA_NAMESPACE }}
           DSPA_NAME: ${{ env.DSPA_NAME }}
         run: |
-          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}     
+          make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE}
 
       - name: Clean up
         run: |
