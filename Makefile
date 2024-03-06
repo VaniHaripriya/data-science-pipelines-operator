@@ -61,7 +61,7 @@ ARGO_NS ?= opendatahub
 KUBECONFIGPATH ?= $(HOME)/.kube/config
 K8SAPISERVERHOST ?= http://localhost:6443
 DSPANAMESPACE ?= default
-DSPAPATH ?= resources/dspa-lite.yaml
+DSPAPATH ?= resources/dspa-external-lite.yaml
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
