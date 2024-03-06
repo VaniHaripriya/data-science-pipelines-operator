@@ -107,7 +107,7 @@ jobs:
       
       - name: Create Minio Secrets
         run: |
-          kubectl create secret generic minio --from-literal=accesskey=accesskey --from-literal=secretkey=secretkey -n ${{ env.DSPA_NAMESPACE_EXTERNAL }}
+          kubectl create secret generic minio --from-literal=accesskey=accesskey --from-literal=secretkey=secretkey -n ${{ env.DSPA_NAMESPACE }}
       
       - name: Run tests
         working-directory: ${{ github.workspace }}
