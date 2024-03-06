@@ -30,7 +30,7 @@ import (
 
 var _ = Describe("A successfully deployed DSPA", func() {
 
-	podCount := 7
+	podCount := 8
 
 	Context("with extrnal connections for MariaDB and Minio", func() {
 		It(fmt.Sprintf("should have %d pods", podCount), func() {
