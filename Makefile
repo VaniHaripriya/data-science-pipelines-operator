@@ -126,15 +126,10 @@ unittest: manifests generate fmt vet envtest ## Run tests.
 functest: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... --tags=test_functional -coverprofile cover.out
 
-.PHONY: integrationtest_dspa
+.PHONY: integrationtest
 integrationtest_dspa: ## Run integration tests
 	cd tests && \
 	go run github.com/onsi/ginkgo/v2/ginkgo --tags=test_integration -- -kubeconfig=${KUBECONFIGPATH} -k8sApiServerHost=${K8SAPISERVERHOST} -DSPANamespace=${DSPANAMESPACE} -DSPAPath=${DSPAPATH} -ginkgo.v
-
-.PHONY: integrationtest_dspa_external
-integrationtest_dspa_external: ## Run integration tests
-	cd tests && \
-	go run github.com/onsi/ginkgo/v2/ginkgo --tags=test_integration -- -kubeconfig=${KUBECONFIGPATH} -k8sApiServerHost=${K8SAPISERVERHOST} -DSPANamespace=${DSPANAMESPACE} -DSPAPath=${DSPAEXTERNALPATH} -ginkgo.v
 
 ##@ Build
 
