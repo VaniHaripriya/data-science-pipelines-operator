@@ -69,10 +69,11 @@ spec:
   objectStorage:
     externalStorage:
       bucket: mlpipeline
-      host: minio-secure-test-minio.apps.vmudadla.dev.datahub.redhat.com
+      host: minio.test-minio.svc.cluster.local
+      port: "9000"
       region: us-east-2
       s3CredentialsSecret:
         accessKey: accesskey
         secretKey: secretkey
         secretName: minio
-      scheme: https
+      scheme: http
