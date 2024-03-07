@@ -30,7 +30,7 @@ env:
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
   DSPA_PATH: ${{ github.workspace }}/tests/resources/dspa-lite.yaml
-  DSPA_EXTERNAL_PATH: ${{ github.workspace }}/tests/resources/external/dspa-external-lite.yaml
+  DSPA_EXTERNAL_PATH: ${{ github.workspace }}/tests/resources/dspa-external-lite.yaml
 jobs:
   dspo-tests:
     runs-on: ubuntu-20.04
