@@ -25,6 +25,7 @@ env:
   DSPA_NAMESPACE: test-dspa
   DSPA_EXTERNAL_NAMESPACE: test-dspa-external
   MINIO_NAMESPACE: test-minio
+  MARIADB_NAMESPACE: test-mariadb
   DSPA_NAME: test-dspa
   DSPA_EXTERNAL_NAME: test-dspa-external  
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
@@ -90,6 +91,15 @@ jobs:
         run: |
           kustomize build . |  oc -n ${{ env.MINIO_NAMESPACE }} apply -f -
 
+      - name: Create MariaDB Namespace
+        run: |
+          kubectl create namespace ${{ env.MARIADB_NAMESPACE }}
+      
+      - name: Deploy MariaDB
+        working-directory: ${{ github.workspace }}/.github/resources/mariadb
+        run: |
+          kustomize build . |  oc -n ${{ env.MARIADB_NAMESPACE }} apply -f -
+
       - name: Wait for DSPO and Argo deployment
         run: |
           kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
@@ -107,6 +117,11 @@ jobs:
         run: |
           kubectl create secret generic minio --from-literal=accesskey=accesskey --from-literal=secretkey=secretkey -n ${{ env.DSPA_EXTERNAL_NAME }}
       
+      - name: Create MariaDB Secrets
+        run: |
+          password=$(kubectl get secret ds-pipeline-db-test -n test-mariadb -o jsonpath="{.data.password}" | base64 --decode)
+          kubectl create secret generic ds-pipeline-db-test --from-literal=password="$password" -n ${{ env.DSPA_EXTERNAL_NAME }}
+
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:

@@ -30,7 +30,7 @@ import (
 
 var _ = Describe("A successfully deployed DSPA", func() {
 
-	podCount := 7
+	podCount := 6
 
 	var isTestDspa bool
 
@@ -61,9 +61,11 @@ var _ = Describe("A successfully deployed DSPA", func() {
 		It(fmt.Sprintf("should have a ready %s deployment", "Scheduled Workflow"), func() {
 			systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("ds-pipeline-scheduledworkflow-%s", DSPA.Name), clientmgr.k8sClient)
 		})
-		It(fmt.Sprintf("should have a ready %s deployment", "MariaDB"), func() {
-			systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("mariadb-%s", DSPA.Name), clientmgr.k8sClient)
-		})
+		if isTestDspa {
+			It(fmt.Sprintf("should have a ready %s deployment", "MariaDB"), func() {
+				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("mariadb-%s", DSPA.Name), clientmgr.k8sClient)
+			})
+		}
 		if isTestDspa {
 			It(fmt.Sprintf("should have a ready %s deployment", "Minio"), func() {
 				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("minio-%s", DSPA.Name), clientmgr.k8sClient)
