@@ -99,12 +99,6 @@ jobs:
         working-directory: ${{ github.workspace }}/.github/resources/mariadb
         run: |
           kustomize build . |  oc -n ${{ env.MARIADB_NAMESPACE }} apply -f -
-          end=$((SECONDS+180))
-          while [ $SECONDS -lt $end ]; do
-            name=$(oc -n ${{ env.MARIADB_NAMESPACE }} get pods | grep maria | awk '{print $1}')
-            kubectl -n ${{ env.MARIADB_NAMESPACE }} logs ${name} | tail -n 30
-            sleep 3s
-          done
 
       - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
@@ -129,16 +123,6 @@ jobs:
           password=$(kubectl get secret ds-pipeline-db-test -n test-mariadb -o jsonpath="{.data.password}" | base64 --decode)
           kubectl create secret generic ds-pipeline-db-test --from-literal=password="$password" -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
 
-      - name: "Debug - deploy dspa"
-        run: |
-          kubectl apply -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} -f ${DSPA_EXTERNAL_PATH}
-          end=$((SECONDS+180))
-          while [ $SECONDS -lt $end ]; do
-            kubectl get pods -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
-            kubectl get -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}   dspa ${{ env.DSPA_EXTERNAL_NAME }} -o yaml | yq '.status'
-            sleep 3s
-          done
-
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
@@ -157,6 +141,7 @@ jobs:
         run: |
             make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_EXTERNAL_PATH}
 
+      # TODO clean up external mariadb/minio
       - name: Clean up
         run: |
           make undeploy-kind
