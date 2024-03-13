@@ -128,7 +128,7 @@ jobs:
           kubectl apply -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} -f ${DSPA_EXTERNAL_PATH}        
           end=$((SECONDS+180))
           while [ $SECONDS -lt $end ]; do
-            name=$(oc -n opendatahub get pods)
+            name=$(oc -n opendatahub get pods | grep controller | awk '{print $1}')
             kubectl -n opendatahub logs ${name} | tail -n 30
             sleep 3s
           done
