@@ -100,10 +100,9 @@ jobs:
         run: |
           kustomize build . |  oc -n ${{ env.MARIADB_NAMESPACE }} apply -f -
 
-      - name: Wait for Dependencies (DSPO, ARGO, Minio, Mariadb)
+      - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
-          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
-          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment argo-server
+          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager          
           kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment mariadb
           kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
 
