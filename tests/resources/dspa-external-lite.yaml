@@ -8,9 +8,6 @@ spec:
     deploy: true
     enableOauth: false
     enableSamplePipeline: true
-    cABundle:
-      configMapName: kube-root-ca.crt
-      configMapKey: ca.crt
     resources:
       limits:
         cpu: 20m
@@ -55,7 +52,7 @@ spec:
           cpu: 20m
           memory: 100Mi
   database:
-    customExtraParams: |
+    extraParams: |
       {"tls": "false"}
     externalDB:
       host: mariadb.test-mariadb.svc.cluster.local
