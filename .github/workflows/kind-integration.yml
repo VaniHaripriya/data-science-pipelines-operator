@@ -125,14 +125,14 @@ jobs:
 
       - name: "Debug - deploy dspa"
         run: |
-          kubectl apply -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} -f ${DSPA_EXTERNAL_PATH}
+          kubectl apply -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} -f ${DSPA_EXTERNAL_PATH}        
           end=$((SECONDS+180))
           while [ $SECONDS -lt $end ]; do
-            kubectl get pods -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
-            kubectl get -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}   dspa ${{ env.DSPA_EXTERNAL_NAME }} -o yaml | yq '.status'
+            name=$(oc -n opendatahub get pods)
+            kubectl -n opendatahub logs ${name} | tail -n 30
             sleep 3s
           done
-
+          
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
