@@ -21,11 +21,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/json"
 	"math/rand"
 	"strings"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/json"
 
 	"github.com/go-logr/logr"
 	mf "github.com/manifestival/manifestival"
@@ -554,6 +555,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 	p.MLMD = dsp.Spec.MLMD.DeepCopy()
 	p.CustomCABundleRootMountPath = config.CustomCABundleRootMountPath
 	p.PiplinesCABundleMountPath = config.GetCABundleFileMountPath()
+	//dspaCABundleMountPath := p.APIServer.CABundle.CABundleMountPath
 
 	log := loggr.WithValues("namespace", p.Namespace).WithValues("dspa_name", p.Name)
 
@@ -611,6 +613,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 
 		// If user provided a CA bundle, include this in tls verification
 		if p.APIServer.CABundle != nil {
+			p.CustomCABundleRootMountPath = p.APIServer.CABundle.CABundleMountPath
 			dspaCaBundleCfgKey, dspaCaBundleCfgName := p.APIServer.CABundle.ConfigMapKey, p.APIServer.CABundle.ConfigMapName
 			dspaCACfgErr, dspaProvidedCABundle := util.GetConfigMapValue(ctx, dspaCaBundleCfgKey, dspaCaBundleCfgName, p.Namespace, client, log)
 			if dspaCACfgErr != nil && apierrs.IsNotFound(dspaCACfgErr) {
@@ -677,7 +680,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 			// We need to update the default SSL_CERT_DIR to include
 			// dsp custom cert path, used by DSP Api Server
 			var certDirectories = []string{
-				config.CustomCABundleRootMountPath,
+				p.CustomCABundleRootMountPath,
 				"/etc/ssl/certs",     // SLES10/SLES11, https://golang.org/issue/12139
 				"/etc/pki/tls/certs", // Fedora/RHEL
 			}

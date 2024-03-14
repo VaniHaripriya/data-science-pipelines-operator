@@ -4,6 +4,14 @@ metadata:
   name: sample
 spec:
   dspVersion: v2
+  apiServer:
+    deploy: true
+    enableSamplePipeline: false
+    # If developing against a cluster using self-signed certs, then uncomment this field.
+    cABundle:
+      configMapName: kube-root-ca.crt
+      configMapKey: ca.crt
+      caBundleMountPath: /etc/ssl/certs
   objectStorage:
     minio:
       deploy: true

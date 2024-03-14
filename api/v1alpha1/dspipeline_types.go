@@ -127,6 +127,8 @@ type CABundle struct {
 	// the CA bundle file (e.g. ca-bundle.crt)
 	// +kubebuilder:validation:Required
 	ConfigMapKey string `json:"configMapKey"`
+	// +kubebuilder:validation:Required
+	CABundleMountPath string `json:"caBundleMountPath"`
 }
 
 type ArtifactScriptConfigMap struct {
