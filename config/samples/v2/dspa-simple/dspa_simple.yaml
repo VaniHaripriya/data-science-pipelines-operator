@@ -5,8 +5,8 @@ metadata:
 spec:
   dspVersion: v2
   apiServer:
-    deploy: true
-    enableSamplePipeline: false
+    deploy: true   
+    enableSamplePipeline: true 
     # If developing against a cluster using self-signed certs, then uncomment this field.
     cABundle:
       configMapName: kube-root-ca.crt

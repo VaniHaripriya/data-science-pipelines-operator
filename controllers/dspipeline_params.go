@@ -555,7 +555,6 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 	p.MLMD = dsp.Spec.MLMD.DeepCopy()
 	p.CustomCABundleRootMountPath = config.CustomCABundleRootMountPath
 	p.PiplinesCABundleMountPath = config.GetCABundleFileMountPath()
-	//dspaCABundleMountPath := p.APIServer.CABundle.CABundleMountPath
 
 	log := loggr.WithValues("namespace", p.Namespace).WithValues("dspa_name", p.Name)
 
@@ -641,8 +640,13 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 		// 3) set ssl_cert_dir for api server
 		if len(p.APICustomPemCerts) > 0 {
 			p.CustomCABundle = &dspa.CABundle{
-				ConfigMapKey:  config.CustomDSPTrustedCAConfigMapKey,
-				ConfigMapName: fmt.Sprintf("%s-%s", config.CustomDSPTrustedCAConfigMapNamePrefix, p.Name),
+				ConfigMapName:     fmt.Sprintf("%s-%s", config.CustomDSPTrustedCAConfigMapNamePrefix, p.Name),
+				CABundleMountPath: p.CustomCABundleRootMountPath,
+			}
+			if p.APIServer.CABundle.ConfigMapKey != "" {
+				p.CustomCABundle.ConfigMapKey = p.APIServer.CABundle.ConfigMapKey
+			} else {
+				p.CustomCABundle.ConfigMapKey = config.CustomDSPTrustedCAConfigMapKey
 			}
 
 			// Combine certs into a single configmap field

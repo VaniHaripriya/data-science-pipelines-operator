@@ -126,8 +126,7 @@ type CABundle struct {
 	// Key should map to a CA bundle. The key is also used to name
 	// the CA bundle file (e.g. ca-bundle.crt)
 	// +kubebuilder:validation:Required
-	ConfigMapKey string `json:"configMapKey"`
-	// +kubebuilder:validation:Required
+	ConfigMapKey      string `json:"configMapKey"`
 	CABundleMountPath string `json:"caBundleMountPath"`
 }
 
