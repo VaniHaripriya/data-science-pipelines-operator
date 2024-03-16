@@ -613,6 +613,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 		// If user provided a CA bundle, include this in tls verification
 		if p.APIServer.CABundle != nil {
 			p.CustomCABundleRootMountPath = p.APIServer.CABundle.CABundleMountPath
+			p.PiplinesCABundleMountPath = p.APIServer.CABundle.CABundleMountPath
 			dspaCaBundleCfgKey, dspaCaBundleCfgName := p.APIServer.CABundle.ConfigMapKey, p.APIServer.CABundle.ConfigMapName
 			dspaCACfgErr, dspaProvidedCABundle := util.GetConfigMapValue(ctx, dspaCaBundleCfgKey, dspaCaBundleCfgName, p.Namespace, client, log)
 			if dspaCACfgErr != nil && apierrs.IsNotFound(dspaCACfgErr) {
