@@ -123,6 +123,23 @@ jobs:
           password=$(kubectl get secret ds-pipeline-db-test -n test-mariadb -o jsonpath="{.data.password}" | base64 --decode)
           kubectl create secret generic ds-pipeline-db-test --from-literal=password="$password" -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
 
+      - name: "Debug - deploy dspa"
+        run: |
+          kubectl apply -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} -f ${DSPA_EXTERNAL_PATH}
+          sleep 60s 
+          echo ----- Pods ------
+          kubectl get pods -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
+          
+          echo ----- Deployments ------
+          kubectl get deployments -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
+          
+          echo ----- Replicasets ------
+          kubectl get replicasets -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
+          
+          echo ----- DSPO logs ------
+          name=$(kubectl -n opendatahub get pods --no-headers | awk '{print $1}')
+          oc -n opendatahub logs ${name} | tail -n 100
+
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
