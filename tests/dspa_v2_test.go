@@ -38,11 +38,11 @@ var _ = Describe("A successfully deployed DSPA", func() {
 	BeforeEach(func() {
 		if DSPA.Spec.ObjectStorage.ExternalStorage == nil {
 			isUsingExternalStorage = true
-			//podCount = podCount - 1
+			podCount = podCount - 1
 		}
 		if DSPA.Spec.Database.ExternalDB == nil {
 			isUsingExternalDB = true
-			//podCount = podCount - 1
+			podCount = podCount - 1
 		}
 	})
 
