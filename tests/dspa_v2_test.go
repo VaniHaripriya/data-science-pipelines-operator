@@ -37,7 +37,7 @@ var _ = Describe("A successfully deployed DSPA", func() {
 
 	BeforeEach(func() {
 		fmt.Printf("%+v\n", DSPA.Spec.ObjectStorage.ExternalStorage)
-		fmt.Printf("%+v\n", DSPA.Spec.ObjectStorage.ExternalDB)
+		fmt.Printf("%+v\n", DSPA.Spec.Database.ExternalDB)
 		if DSPA.Spec.ObjectStorage != nil && DSPA.Spec.ObjectStorage.ExternalStorage != nil {
 			isUsingExternalStorage = true
 			podCount--
