@@ -32,13 +32,13 @@ var _ = Describe("A successfully deployed DSPA", func() {
 
 	podCount := 8
 
-	var isUsingExternalStorage := false
-	var isUsingExternalDB := false
+	var isUsingExternalStorage bool
+	var isUsingExternalDB bool
 
 	BeforeEach(func() {
 		fmt.Printf("%+v\n", DSPA.Spec.ObjectStorage.ExternalStorage)
 		fmt.Printf("%+v\n", DSPA.Spec.Database.ExternalDB)
-		
+
 	})
 
 	Context("with default MariaDB and Minio", func() {
