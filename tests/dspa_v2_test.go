@@ -40,11 +40,11 @@ var _ = Describe("A successfully deployed DSPA", func() {
 		fmt.Printf("%+v\n", DSPA.Spec.Database.ExternalDB)
 		if DSPA.Spec.ObjectStorage != nil && DSPA.Spec.ObjectStorage.ExternalStorage != nil {
 			isUsingExternalStorage = true
-			podCount--
+			podCount = podCount - 1
 		}
 		if DSPA.Spec.Database != nil && DSPA.Spec.Database.ExternalDB != nil {
 			isUsingExternalDB = true
-			podCount--
+			podCount = podCount - 1
 		}
 	})
 
