@@ -32,23 +32,24 @@ var _ = Describe("A successfully deployed DSPA", func() {
 
 	podCount := 8
 
-	var isUsingExternalStorage bool
-	var isUsingExternalDB bool
+	var isUsingExternalStorage := false
+	var isUsingExternalDB := false
 
 	BeforeEach(func() {
 		fmt.Printf("%+v\n", DSPA.Spec.ObjectStorage.ExternalStorage)
 		fmt.Printf("%+v\n", DSPA.Spec.Database.ExternalDB)
-		if DSPA.Spec.ObjectStorage != nil && DSPA.Spec.ObjectStorage.ExternalStorage != nil {
-			isUsingExternalStorage = true
-			podCount = podCount - 1
-		}
-		if DSPA.Spec.Database != nil && DSPA.Spec.Database.ExternalDB != nil {
-			isUsingExternalDB = true
-			podCount = podCount - 1
-		}
+		
 	})
 
 	Context("with default MariaDB and Minio", func() {
+		if DSPA.Spec.ObjectStorage.ExternalStorage != nil {
+			isUsingExternalStorage = true
+			podCount = podCount - 1
+		}
+		if DSPA.Spec.Database.ExternalDB != nil {
+			isUsingExternalDB = true
+			podCount = podCount - 1
+		}
 		It(fmt.Sprintf("should have %d pods", podCount), func() {
 			podList := &corev1.PodList{}
 			listOpts := []client.ListOption{
@@ -68,12 +69,12 @@ var _ = Describe("A successfully deployed DSPA", func() {
 		It(fmt.Sprintf("should have a ready %s deployment", "Scheduled Workflow"), func() {
 			systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("ds-pipeline-scheduledworkflow-%s", DSPA.Name), clientmgr.k8sClient)
 		})
-		if isUsingExternalDB {
+		if !isUsingExternalDB {
 			It(fmt.Sprintf("should have a ready %s deployment", "MariaDB"), func() {
 				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("mariadb-%s", DSPA.Name), clientmgr.k8sClient)
 			})
 		}
-		if isUsingExternalStorage {
+		if !isUsingExternalStorage {
 			It(fmt.Sprintf("should have a ready %s deployment", "Minio"), func() {
 				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("minio-%s", DSPA.Name), clientmgr.k8sClient)
 			})
