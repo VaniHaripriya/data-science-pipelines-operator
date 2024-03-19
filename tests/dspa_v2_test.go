@@ -66,12 +66,12 @@ var _ = Describe("A successfully deployed DSPA", func() {
 		It(fmt.Sprintf("should have a ready %s deployment", "Scheduled Workflow"), func() {
 			systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("ds-pipeline-scheduledworkflow-%s", DSPA.Name), clientmgr.k8sClient)
 		})
-		if isUsingExternalDB {
+		if !isUsingExternalDB {
 			It(fmt.Sprintf("should have a ready %s deployment", "MariaDB"), func() {
 				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("mariadb-%s", DSPA.Name), clientmgr.k8sClient)
 			})
 		}
-		if isUsingExternalStorage {
+		if !isUsingExternalStorage {
 			It(fmt.Sprintf("should have a ready %s deployment", "Minio"), func() {
 				systemsTesttUtil.TestForSuccessfulDeployment(ctx, DSPANamespace, fmt.Sprintf("minio-%s", DSPA.Name), clientmgr.k8sClient)
 			})
