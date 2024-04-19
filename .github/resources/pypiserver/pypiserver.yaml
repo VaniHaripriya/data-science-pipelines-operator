@@ -1,0 +1,91 @@
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: pypi
+spec:
+  to:
+    kind: Service
+    name: pypi-server
+    weight: 100
+  port:
+    targetPort: pypi-server
+  tls:
+    termination: edge
+  wildcardPolicy: None
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pypi-server
+spec:
+  ports:
+    - name: pypi-server
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    name: pypi-server
+  type: ClusterIP
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pypi-datastore
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pypi-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: pypi-server
+  template:
+    metadata:
+      labels:
+        name: pypi-server
+    spec:
+      containers:
+        - image: "quay.io/harshad16/pypi-server"
+          imagePullPolicy: IfNotPresent
+          name: pypi-server
+          command: 
+            - pypi-server
+          args:
+            - run
+            - '--host'
+            - '0.0.0.0'
+            - '--port'
+            - '8080'
+            - '--disable-fallback'
+            - '--verbose'
+            - '/opt/app-root/packages'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+            limits:
+              cpu: "500m"
+              memory: 1Gi
+          volumeMounts:
+          - mountPath: /opt/app-root/packages
+            name: pypi-datastore
+      volumes:
+      - name: pypi-datastore
+        persistentVolumeClaim:
+          claimName: pypi-datastore

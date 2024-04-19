@@ -27,6 +27,7 @@ env:
   DSPA_EXTERNAL_NAMESPACE: dspa-ext
   MINIO_NAMESPACE: test-minio
   MARIADB_NAMESPACE: test-mariadb
+  PYPISERVER_NAMESPACE: test-pypiserver
   DSPA_NAME: test-dspa
   DSPA_EXTERNAL_NAME: dspa-ext
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
@@ -100,6 +101,25 @@ jobs:
         working-directory: ${{ github.workspace }}/.github/resources/mariadb
         run: |
           kustomize build . |  oc -n ${{ env.MARIADB_NAMESPACE }} apply -f -
+      
+      - name: Create Pypiserver Namespace
+        run: |
+          kubectl create namespace ${{ env.PYPISERVER_NAMESPACE }}
+
+      - name: Deploy pypi-server
+        working-directory: ${{ github.workspace }}/.github/resources/pypiserver
+        run: |
+          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -
+      
+      - name: Get PyPI server route
+        run: |
+          route=$(oc -n ${{ env.PYPISERVER_NAMESPACE }} get route pypi -o jsonpath='{.spec.host}')
+          echo "PyPI server is accessible at: https://$route"
+
+      - name: Upload Python Packages to pypi-server
+        working-directory: ${{ github.workspace }}/.github/resources/pypiserver
+        run: |
+          sh package_upload.sh
 
       - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
