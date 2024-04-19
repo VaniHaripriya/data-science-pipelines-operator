@@ -14,6 +14,9 @@ pip download kfp==2.7.0 -d "$kfp_directory"
 # Download boto3 package
 pip download boto3 -d "$boto_directory"
 
+# Print the pods in the namespace
+oc -n test-pypiserver get pods
+
 pod_name=$(oc -n test-pypiserver get pod | grep pypi | awk '{print $1}')
 
 # Copy kfp packages
