@@ -109,24 +109,26 @@ jobs:
       - name: Deploy pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver
         run: |
-          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f pypiserver.yaml
+          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f pypiserver.yaml      
       
-      - name: Get PyPI server route
+      - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
-          route=$(oc -n ${{ env.PYPISERVER_NAMESPACE }} get route pypi -o jsonpath='{.spec.host}')
-          echo "PyPI server is accessible at: https://$route"
+          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
+          kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment mariadb
+          kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
+          kubectl wait -n ${{ env.PYPISERVER_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment pypi-server
+
 
       - name: Upload Python Packages to pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver
         run: |
           sh package_upload.sh
 
-      - name: Wait for Dependencies (DSPO, Minio, Mariadb)
+      - name: Get PyPI server route
         run: |
-          kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
-          kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment mariadb
-          kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
-
+          route=$(oc -n ${{ env.PYPISERVER_NAMESPACE }} get route pypi -o jsonpath='{.spec.host}')
+          echo "PyPI server is accessible at: https://$route"      
+    
       - name: Create DSPA Namespace
         run: |
           kubectl create namespace ${{ env.DSPA_NAMESPACE }}
