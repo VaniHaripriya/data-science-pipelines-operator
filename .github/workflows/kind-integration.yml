@@ -109,7 +109,7 @@ jobs:
       - name: Deploy pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver
         run: |
-          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -
+          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f pypiserver.yaml
       
       - name: Get PyPI server route
         run: |
