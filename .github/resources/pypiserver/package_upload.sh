@@ -21,7 +21,7 @@ oc -n test-pypiserver get pods
 # Print the routes and their hosts in the namespace
 oc -n test-pypiserver get routes -o=jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.host}{"\n"}{end}'
 
-oc -n test-pypiserver describe routes
+oc -n test-pypiserver describe routes | awk '/Requested Host:/ {print $3}'
 
 
 pod_name=$(oc -n test-pypiserver get pod | grep pypi | awk '{print $1}')
