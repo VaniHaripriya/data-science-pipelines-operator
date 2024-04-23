@@ -64,8 +64,8 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 			"runtime_config": {
 				"parameters": {
 					"recipient": "test",
-				}
-			}
+				},
+			},
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
