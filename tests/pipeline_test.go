@@ -59,7 +59,8 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 	suite.T().Run("Should successfully upload a pipeline with custom pip server", func(t *testing.T) {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
 		vals := map[string]string{
-			"uploadfile": "resources/test-pipeline-with-custom-pip-server-run.yaml",
+			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
+			"name":       "test-pipeline-with-custom-pip-server-run",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
