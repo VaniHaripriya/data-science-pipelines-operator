@@ -51,18 +51,8 @@ jobs:
         id: go
 
       - name: Setup and start KinD cluster
-        uses: ./.github/actions/kind
+        uses: ./.github/actions/kind   
       
-      - name: Install MetalLB
-        run: |
-          # Install MetalLB in the Kind cluster
-          kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/namespace.yaml
-          kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.11.0/manifests/metallb.yaml
-
-          # Configure MetalLB to use Layer 2 mode (for local testing)
-          kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
-          kubectl apply -f metallb-config.yaml  # Add MetalLB configuration YAML file
-
       # TODO: Consolidate testing CRDS (2 locations)
       - name: Apply OCP CRDs
         env:
