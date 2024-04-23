@@ -12,8 +12,7 @@ from kfp.dsl import ClassificationMetrics
 
 @dsl.component(
     base_image="quay.io/opendatahub/ds-pipelines-sample-base:v1.0",
-   packages_to_install=['boto3'],
-   pip_index_urls=['http://pypi-server.test-pypiserver.svc.cluster.local/']  
+    packages_to_install=['pandas==2.2.0']
 )
 def create_dataset(iris_dataset: Output[Dataset]):
     import pandas as pd
