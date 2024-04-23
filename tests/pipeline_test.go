@@ -55,4 +55,20 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		require.NoError(t, err)
 		assert.Equal(t, 200, response.StatusCode)
 	})
+
+	suite.T().Run("Should successfully upload a pipeline with custom pip server", func(t *testing.T) {
+		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
+		vals := map[string]string{
+			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
+		}
+		body, contentType := TestUtil.FormFromFile(t, vals)
+
+		response, err := http.Post(postUrl, contentType, body)
+		require.NoError(t, err)
+		responseData, err := ioutil.ReadAll(response.Body)
+		responseString := string(responseData)
+		loggr.Info(responseString)
+		require.NoError(t, err)
+		assert.Equal(t, 200, response.StatusCode)
+	})
 }
