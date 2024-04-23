@@ -61,6 +61,11 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
 			"name":       "test-pipeline-with-custom-pip-server-run",
+			"runtime_config": {
+				"parameters": {
+					"recipient": "test"
+				}
+			}
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 

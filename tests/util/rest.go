@@ -33,6 +33,11 @@ type PipelineRequest struct {
 	PipelineVersionReference struct {
 		PipelineID string `json:"pipeline_id"`
 	} `json:"pipeline_version_reference"`
+	RuntimeConfig struct {
+		Parameters struct {
+			Recipient string `json:"recipient"`
+		} `json:"parameters"`
+	} `json:"runtime_config"`
 }
 type Pipeline struct {
 	Pipelines []struct {
@@ -94,6 +99,13 @@ func FormatRequestBody(t *testing.T, pipelineID string, PipelineDisplayName stri
 		PipelineVersionReference: struct {
 			PipelineID string `json:"pipeline_id"`
 		}{PipelineID: pipelineID},
+		RuntimeConfig: struct {
+			Parameters struct {
+				Recipient string `json:"recipient"`
+			} `json:"parameters"`
+		}{Parameters: struct {
+			Recipient string `json:"recipient"`
+		}{Recipient: "test"}},
 	}
 
 	body, err := json.Marshal(requestBody)
