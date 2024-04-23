@@ -63,7 +63,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 			"name":       "test-pipeline-with-custom-pip-server-run",
 			"runtime_config": {
 				"parameters": {
-					"recipient": "test"
+					"recipient": "test",
 				}
 			}
 		}
