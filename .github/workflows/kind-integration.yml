@@ -106,10 +106,15 @@ jobs:
         run: |
           kubectl create namespace ${{ env.PYPISERVER_NAMESPACE }}
 
-      - name: Deploy pypi-server
-        working-directory: ${{ github.workspace }}/.github/resources/pypiserver
+      - name: Generate Self-Signed certs
+        working-directory: ${{ github.workspace }}/.github/resources/pypiserver/certs
         run: |
-          oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f pypiserver.yaml      
+          sh generate-deploy-certs.sh
+          
+      - name: Deploy pypi-server
+        working-directory: ${{ github.workspace }}/.github/resources/pypiserver/base
+        run: |
+          kustomize build . | oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -      
       
       - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
@@ -117,7 +122,6 @@ jobs:
           kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment mariadb
           kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
           kubectl wait -n ${{ env.PYPISERVER_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment pypi-server
-
 
       - name: Upload Python Packages to pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver
