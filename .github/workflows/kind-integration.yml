@@ -106,10 +106,10 @@ jobs:
         run: |
           kubectl create namespace ${{ env.PYPISERVER_NAMESPACE }}
 
-      - name: Generate Self-Signed certs
-        working-directory: ${{ github.workspace }}/.github/resources/pypiserver
+      - name: Apply Self-Signed certs
+        working-directory: ${{ github.workspace }}/.github/resources/pypiserver/certs
         run: |
-          sh generate-deploy-certs.sh
+           kustomize build . | oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -
 
       - name: Deploy pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver/base
