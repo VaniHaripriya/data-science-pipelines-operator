@@ -26,7 +26,7 @@ openssl req \
 
 # Sign Our CSR With Root CA
 # As a result, the CA-signed certificate will be in the domain.crt file.
-openssl x509 -req -days 3650 -CA "${path}/rootCA.crt" -CAkey "${path}/rootCA.key" -in "${path}/domain.csr" -out "${path}/domain.crt" -CAcreateserial -extfile manual-certs/domain.ext 2>/dev/null
+openssl x509 -req -days 3650 -CA "${path}/rootCA.crt" -CAkey "${path}/rootCA.key" -in "${path}/domain.csr" -out "${path}/domain.crt" -CAcreateserial -extfile certs/manual-certs/domain.ext 2>/dev/null
 
 # Apply certificates using kustomize and oc
 pushd "${path}"
