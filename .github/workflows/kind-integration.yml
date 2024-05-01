@@ -23,11 +23,11 @@ concurrency:
 env:
   IMAGE_REPO_DSPO: data-science-pipelines-operator
   DSPA_NAMESPACE: test-dspa
-  DSPA_EXTERNAL_NAMESPACE: test-dspa-external
+  DSPA_EXTERNAL_NAMESPACE: dspa-ext
   MINIO_NAMESPACE: test-minio
   MARIADB_NAMESPACE: test-mariadb
   DSPA_NAME: test-dspa
-  DSPA_EXTERNAL_NAME: test-dspa-external
+  DSPA_EXTERNAL_NAME: dspa-ext
   DSPA_DEPLOY_WAIT_TIMEOUT: 300
   INTEGRATION_TESTS_DIR: ${{ github.workspace }}/tests
   DSPA_PATH: ${{ github.workspace }}/tests/resources/dspa-lite.yaml
@@ -86,10 +86,10 @@ jobs:
         run: |
           kubectl create namespace ${{ env.MINIO_NAMESPACE }}
 
-      - name: Deploy Minio
-        working-directory: ${{ github.workspace }}/.github/resources/minio
-        run: |
-          kustomize build . |  oc -n ${{ env.MINIO_NAMESPACE }} apply -f -
+      # - name: Deploy Minio
+      #   working-directory: ${{ github.workspace }}/.github/resources/minio
+      #   run: |
+      #     kustomize build . |  oc -n ${{ env.MINIO_NAMESPACE }} apply -f -
 
       - name: Create MariaDB Namespace
         run: |
@@ -99,11 +99,45 @@ jobs:
         working-directory: ${{ github.workspace }}/.github/resources/mariadb
         run: |
           kustomize build . |  oc -n ${{ env.MARIADB_NAMESPACE }} apply -f -
+          end=$((SECONDS+180))
+          while [ $SECONDS -lt $end ]; do
+            name=$(oc -n ${{ env.MARIADB_NAMESPACE }} get pods | grep maria | awk '{print $1}')
+            kubectl -n ${{ env.MARIADB_NAMESPACE }} logs ${name} | tail -n 30
+            sleep 3s
+          done
+
+      - name: Print Pods
+        run: |
+          oc -n ${{ env.MARIADB_NAMESPACE }} get pods
+
+      - name: Deploy Minio
+        working-directory: ${{ github.workspace }}/.github/resources/minio
+        run: |
+          kustomize build . | oc -n ${{ env.MINIO_NAMESPACE }} apply -f -
+          end=$((SECONDS+180))
+          while [ $SECONDS -lt $end ]; do
+            name=$(oc -n ${{ env.MINIO_NAMESPACE }} get pods | grep minio | awk '{print $1}')
+            kubectl -n ${{ env.MINIO_NAMESPACE }} logs ${name} | tail -n 30
+            sleep 3s
+          done
+
+      - name: Print Minio Pods
+        run: |
+          oc -n ${{ env.MINIO_NAMESPACE }} get pods
+
+      - name: Describe Minio Pod
+        run: |
+          name=$(oc -n ${{ env.MINIO_NAMESPACE }} get pods | grep minio | awk '{print $1}')
+          oc describe pod $name -n ${{ env.MINIO_NAMESPACE }}
+
+      - name: Check for ConfigMap "config-service-cabundle"
+        run: |
+          kubectl get configmaps -n ${{ env.MINIO_NAMESPACE }}
 
       - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |
           kubectl wait -n opendatahub --timeout=60s --for=condition=Available=true deployment data-science-pipelines-operator-controller-manager
-          kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment mariadb
+          kubectl wait -n ${{ env.MARIADB_NAMESPACE }} --timeout=120s --for=condition=Available=true deployment mariadb
           kubectl wait -n ${{ env.MINIO_NAMESPACE }} --timeout=60s --for=condition=Available=true deployment minio
 
       - name: Create DSPA Namespace
@@ -123,6 +157,12 @@ jobs:
           password=$(kubectl get secret ds-pipeline-db-test -n test-mariadb -o jsonpath="{.data.password}" | base64 --decode)
           kubectl create secret generic ds-pipeline-db-test --from-literal=password="$password" -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
 
+      - name: Apply rootCA ConfigMap
+        env:
+          RESOURCES_DIR: ${{ github.workspace }}/.github/resources
+        run: |
+          kubectl apply -f ${{ env.RESOURCES_DIR }}/apiserver/root-ca-configmap.yaml -n ${{ env.DSPA_EXTERNAL_NAMESPACE }}
+
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
@@ -140,7 +180,11 @@ jobs:
           DSPA_EXTERNAL_PATH: ${{ env.DSPA_EXTERNAL_PATH }}
         run: |
             make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_EXTERNAL_PATH}
-
+      - name: Check DSPO Logs
+        if: always()
+        run: |
+          dspo_pod=$(kubectl get pods -n opendatahub | grep 'data-science-pipelines-operator' | awk '{print $1}')
+          kubectl logs -n opendatahub $dspo_pod | tail -n 100
       - name: Clean up
         run: |
           make undeploy-kind

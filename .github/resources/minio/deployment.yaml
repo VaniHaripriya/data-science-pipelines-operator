@@ -16,6 +16,15 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: minio
+        - name: minio-certs
+          secret:
+            secretName: minio-certs
+            items:
+              - key: public.crt
+                path: public.crt
+              - key: private.key
+                path: private.key
+            defaultMode: 420
       containers:
         - resources:
             limits:
@@ -44,6 +53,9 @@ spec:
             - name: data
               mountPath: /data
               subPath: minio
+            - name: minio-certs
+              mountPath: /.minio/certs
+          terminationMessagePolicy: File
           image: 'quay.io/minio/minio:RELEASE.2023-10-16T04-13-43Z'
           args:
             - server
