@@ -16,6 +16,13 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: minio
+        - configMap:
+            defaultMode: 420
+            items:
+              - key: service-ca.crt
+                path: public.crt
+            name: config-service-cabundle
+          name: cabundle
         - name: minio-certs
           secret:
             secretName: minio-certs
@@ -24,7 +31,7 @@ spec:
                 path: public.crt
               - key: private.key
                 path: private.key
-            defaultMode: 420
+            defaultMode: 420            
       containers:
         - resources:
             limits:
@@ -55,6 +62,8 @@ spec:
               subPath: minio
             - name: minio-certs
               mountPath: /.minio/certs
+            - mountPath: /.minio/certs/CAs
+              name: cabundle
           terminationMessagePolicy: File
           image: 'quay.io/minio/minio:RELEASE.2023-10-16T04-13-43Z'
           args:
