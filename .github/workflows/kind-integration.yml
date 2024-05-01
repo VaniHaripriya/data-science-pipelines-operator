@@ -119,20 +119,19 @@ jobs:
             name=$(oc -n ${{ env.MINIO_NAMESPACE }} get pods | grep minio | awk '{print $1}')
             kubectl -n ${{ env.MINIO_NAMESPACE }} logs ${name} | tail -n 30
             sleep 3s
-          done
-
-      - name: Print Minio Pods
-        run: |
-          oc -n ${{ env.MINIO_NAMESPACE }} get pods
+          done 
+          dspo_pod=$(kubectl get pods -n opendatahub | grep 'data-science-pipelines-operator' | awk '{print $1}')
+          kubectl logs -n opendatahub $dspo_pod | tail -n 100    
 
       - name: Describe Minio Pod
         run: |
           name=$(oc -n ${{ env.MINIO_NAMESPACE }} get pods | grep minio | awk '{print $1}')
           oc describe pod $name -n ${{ env.MINIO_NAMESPACE }}
 
-      - name: Check for ConfigMap "config-service-cabundle"
+      - name: Check for ConfigMap "config-service-cabundle1"
         run: |
           kubectl get configmaps -n ${{ env.MINIO_NAMESPACE }}
+          kubectl describe configmap config-service-cabundle1 -n ${{ env.MINIO_NAMESPACE }} 
 
       - name: Wait for Dependencies (DSPO, Minio, Mariadb)
         run: |

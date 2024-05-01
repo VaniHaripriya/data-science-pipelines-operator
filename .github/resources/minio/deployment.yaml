@@ -21,7 +21,7 @@ spec:
             items:
               - key: service-ca.crt
                 path: public.crt
-            name: config-service-cabundle
+            name: config-service-cabundle1
           name: cabundle
         - name: minio-certs
           secret:
