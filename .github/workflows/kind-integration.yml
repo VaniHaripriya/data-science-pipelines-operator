@@ -114,13 +114,8 @@ jobs:
       - name: Apply Self-Signed certs
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver/certs
         run: |
-          kustomize build . | oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -
-          
-      - name: Apply Self-Signed certs
-        working-directory: ${{ github.workspace }}/.github/resources/pypiserver/certs
-        run: |
-           kustomize build . | oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -
-
+          kustomize build . | oc -n ${{ env.PYPISERVER_NAMESPACE }} apply -f -       
+     
       - name: Deploy pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver/base
         run: |
