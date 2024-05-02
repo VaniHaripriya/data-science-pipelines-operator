@@ -1,5 +1,0 @@
-[pypi-server]
-ssl_cert = /.pypi-server/certs/public.crt
-ssl_key = /.pypi-server/certs/private.key
-ssl_capath = /.pypi-server/certs/CAs
-require_secure_transport = on

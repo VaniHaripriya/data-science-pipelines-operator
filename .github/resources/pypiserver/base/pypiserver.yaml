@@ -26,7 +26,9 @@ spec:
             - '8080'
             - '--disable-fallback'
             - '--verbose'
-            - '/opt/app-root/packages'
+            - '--certs-dir'
+            - '/.pypi-server/certs' 
+            - '/opt/app-root/packages'             
           ports:
             - containerPort: 8080
               protocol: TCP
@@ -41,10 +43,7 @@ spec:
             - mountPath: /opt/app-root/packages
               name: pypi-datastore
             - mountPath: /.pypi-server/certs
-              name: pypi-server-certs
-            - mountPath: /etc/my.cnf.d/z-custom-my.cnf
-              name: tls-config
-              subPath: z-custom-my.cnf
+              name: pypi-server-certs            
             - name: ca-bundle
               mountPath: /.pypi-server/certs/CAs
       volumes:

@@ -146,6 +146,12 @@ jobs:
         run: |
           kustomize build . |  oc -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} apply -f -
 
+      - name: Apply PIP Server rootCA ConfigMap
+        env:
+          RESOURCES_DIR: ${{ github.workspace }}/.github/resources
+        run: |
+          kubectl apply -f ${{ env.RESOURCES_DIR }}/apiserver/pip-root-ca-configmap.yaml -n ${{ env.DSPA_NAMESPACE }}
+      
       - name: Run tests
         working-directory: ${{ github.workspace }}
         env:
