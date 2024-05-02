@@ -6,6 +6,9 @@ spec:
   dspVersion: v2
   apiServer:
     enableOauth: false
+    cABundle:
+      configMapName: root-ca
+      configMapKey: public.crt
     resources:
       limits:
         cpu: 20m
