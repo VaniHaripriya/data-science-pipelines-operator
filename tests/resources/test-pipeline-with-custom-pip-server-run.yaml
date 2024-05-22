@@ -1,16 +1,10 @@
 # PIPELINE DEFINITION
 # Name: hello-pipeline
-# Inputs:
-#    recipient: str
 # Outputs:
 #    Output: str
 components:
   comp-say-hello:
     executorLabel: exec-say-hello
-    inputDefinitions:
-      parameters:
-        name:
-          parameterType: STRING
     outputDefinitions:
       parameters:
         Output:
@@ -28,13 +22,12 @@ deploymentSpec:
         - sh
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
-          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ python3 -m pip install --quiet --no-warn-script-location --index-url http://pypi-server.test-pypiserver.svc.cluster.local:8080\
-          \ --trusted-host pypi-server.test-pypiserver.svc.cluster.local\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n
+          \ PIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location --index-url  https://nginx-service.test-pypiserver.svc.cluster.local:443/simple/\
           \ 'kfp==2.7.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
           3.9\"'  &&  python3 -m pip install --quiet --no-warn-script-location --index-url\
-          \ http://pypi-server.test-pypiserver.svc.cluster.local:8080 --trusted-host\
-          \ pypi-server.test-pypiserver.svc.cluster.local 'boto3' && \"\
+          \  https://nginx-service.test-pypiserver.svc.cluster.local:443/simple/ 'boto3' && \"\
           $0\" \"$@\"\n"
         - sh
         - -ec
@@ -47,8 +40,8 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef say_hello(name: str) -> str:\n    hello_text = f'Hello, {name}!'\n\
-          \    print(hello_text)\n    return hello_text\n\n"
+          \ *\n\ndef say_hello() -> str:\n    hello_text = f'Hello!'\n    print(hello_text)\n\
+          \    return hello_text\n\n"
         image: quay.io/opendatahub/ds-pipelines-ci-executor-image:v1.0
 pipelineInfo:
   name: hello-pipeline
@@ -66,16 +59,8 @@ root:
           enableCache: true
         componentRef:
           name: comp-say-hello
-        inputs:
-          parameters:
-            name:
-              componentInputParameter: recipient
         taskInfo:
           name: say-hello
-  inputDefinitions:
-    parameters:
-      recipient:
-        parameterType: STRING
   outputDefinitions:
     parameters:
       Output:

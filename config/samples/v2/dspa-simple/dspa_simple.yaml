@@ -4,6 +4,22 @@ metadata:
   name: sample
 spec:
   dspVersion: v2
+  apiServer:
+    deploy: true
+    enableOauth: false
+    enableSamplePipeline: true
+   # caBundleFileMountPath: /dspa/custom-certs
+   # caBundleFileName: custom.crt
+    cABundle:
+      configMapName: nginx-tls-config
+      configMapKey: rootCA.crt
+    resources:
+      limits:
+        cpu: 20m
+        memory: 500Mi
+      requests:
+        cpu: 20m
+        memory: 100m  
   objectStorage:
     minio:
       deploy: true

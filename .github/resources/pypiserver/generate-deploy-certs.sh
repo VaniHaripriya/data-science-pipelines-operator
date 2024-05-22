@@ -10,7 +10,7 @@ pypiserver_namespace="test-pypiserver"
 mkdir -p "${path}"
 
 # Create Key and CSR
-openssl req -newkey rsa:4096 -nodes -keyout "${path}/domain.key" -out "${path}/domain.csr" -subj "/C=XX/CN=pypi-server.test-pypiserver.svc.cluster.local" 2>/dev/null
+openssl req -newkey rsa:4096 -nodes -keyout "${path}/domain.key" -out "${path}/domain.csr" -subj "/C=XX/CN=nginx-service.test-pypiserver.svc.cluster.local" 2>/dev/null
 
 # Creating a CA-Signed Certificate With Our Own CA
 
@@ -22,7 +22,7 @@ openssl req \
   -keyout "${path}/rootCA.key" \
   -nodes \
   -out "${path}/rootCA.crt" \
-  -subj "/C=XX/CN=pypi-server.test-pypiserver.svc.cluster.local" 2>/dev/null
+  -subj "/C=XX/CN=nginx-service.test-pypiserver.svc.cluster.local" 2>/dev/null
 
 # Sign Our CSR With Root CA
 # As a result, the CA-signed certificate will be in the domain.crt file.

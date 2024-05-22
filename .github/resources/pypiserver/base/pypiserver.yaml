@@ -6,17 +6,17 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: pypi-server
+      app: pypi-server
   template:
     metadata:
       labels:
-        name: pypi-server
+        app: pypi-server
     spec:
       containers:
         - image: "quay.io/harshad16/pypi-server"
           imagePullPolicy: IfNotPresent
           name: pypi-server
-          command: 
+          command:
             - pypi-server
           args:
             - run
@@ -25,8 +25,8 @@ spec:
             - '--port'
             - '8080'
             - '--disable-fallback'
-            - '--verbose'             
-            - '/opt/app-root/packages'             
+            - '--verbose'
+            - '/opt/app-root/packages'
           ports:
             - containerPort: 8080
               protocol: TCP
@@ -40,29 +40,37 @@ spec:
           volumeMounts:
             - mountPath: /opt/app-root/packages
               name: pypi-datastore
-            - mountPath: /.pypi-server/certs
-              name: pypi-server-certs            
-            - name: ca-bundle
-              mountPath: /.pypi-server/certs/CAs
+        - image: "quay.io/jitesoft/nginx"
+          name: nginx
+          command:
+            - "/bin/sh"
+            - "-c"
+            - nginx -g "daemon off;"
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+            limits:
+              cpu: "500m"
+              memory: 1Gi
+          volumeMounts:
+            - name: ssl-certs
+              mountPath: /etc/nginx/ssl
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
       volumes:
         - name: pypi-datastore
           persistentVolumeClaim:
             claimName: pypi-datastore
-        - name: pypi-server-certs
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: ssl-certs
           secret:
-            defaultMode: 420
-            items:
-              - key: domain.crt
-                path: public.crt
-              - key: domain.key
-                path: private.key
-            secretName: self-signed-certs
-        - name: tls-config
-          configMap:
-            name: tls-config
-        - name: ca-bundle
-          configMap:
-            name: self-signed-ca
-            items:
-              - key: rootCA.crt
-                path: public.crt
+            secretName: nginx-certs

@@ -2,6 +2,4 @@ authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 subjectAltName = @alt_names
 [alt_names]
-DNS.0 = pypi-server.test-pypiserver.svc.cluster.local
-DNS.1 = pypi-server.test-pypiserver.svc
-
+DNS.0 = nginx-service.test-pypiserver.svc.cluster.local

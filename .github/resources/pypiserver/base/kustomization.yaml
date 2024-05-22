@@ -4,3 +4,5 @@ resources:
   - pypiserver.yaml
   - pvc.yaml
   - service.yaml
+  - nginx-service.yaml
+  - nginx-configmap.yaml
