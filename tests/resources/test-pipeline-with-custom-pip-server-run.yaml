@@ -23,9 +23,10 @@ deploymentSpec:
         - -c
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n
-          \ PIP_DISABLE_PIP_VERSION_CHECK=1\
-          \ export PIP_CERT=/dsp-custom-certs/dsp-ca.crt
-          \ export PIP_DEFAULT_TIMEOUT=100\n
+          \ PIP_DISABLE_PIP_VERSION_CHECK=1\n
+          \ export PIP_CERT=/dsp-custom-certs/dsp-ca.crt\n
+          \ export PIP_CERT=/dsp-custom-certs/dsp-ca.crt\n
+          \ export PIP_DEFAULT_TIMEOUT=100\n\n
           \ python3 -m pip install --quiet --no-warn-script-location --index-url  https://nginx-service.test-pypiserver.svc.cluster.local:443/simple/\
           \ --cert /dsp-custom-certs/dsp-ca.crt 'kfp==2.7.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
           3.9\"'  &&  python3 -m pip install --quiet --no-warn-script-location --index-url\
