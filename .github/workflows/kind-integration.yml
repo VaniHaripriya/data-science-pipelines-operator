@@ -171,7 +171,7 @@ jobs:
         if: always()
         run: |
           pipeline_pod=$(kubectl get pods -n dspa-v2 -o json | jq -r '.items[] | select(.metadata.name | startswith("hello-pipeline")) | select(.status.containerStatuses[]?.state.terminated.reason == "Error") | .metadata.name'| awk '{print $1}')
-          kubectl logs -n test-dspa $pip_pod | tail -n 100
+          kubectl logs -n test-dspa $pipeline_pod | tail -n 100
 
       - name: Run tests for DSPA with External Connections
         working-directory: ${{ github.workspace }}
