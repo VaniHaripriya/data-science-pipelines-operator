@@ -167,6 +167,21 @@ jobs:
         run: |
             make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_PATH}
 
+      - name: Check for Volume Mount in Namespace
+        run: |
+          VOLUME_MOUNT_NAME="ca-bundle"
+          NAMESPACE="test-dspa"
+          kubectl get pvc -n ${NAMESPACE} -o json | jq -e '.items[] | select(.metadata.name == "'${VOLUME_MOUNT_NAME}'")' > /dev/null
+          if [ $? -eq 0 ]; then
+            echo "Volume mount ${VOLUME_MOUNT_NAME} exists in namespace ${NAMESPACE}"
+            # Print the volume mount path from the pods
+            kubectl get pods -n ${NAMESPACE} -o json | jq -r '.items[] | select(.spec.volumes[]?.persistentVolumeClaim.claimName == "'${VOLUME_MOUNT_NAME}'") | .spec.containers[]?.volumeMounts[]? | select(.name == "'${VOLUME_MOUNT_NAME}'") | .mountPath'
+          else
+          else
+            echo "Volume mount ${VOLUME_MOUNT_NAME} does not exist in namespace ${NAMESPACE}"
+            exit 1
+          fi
+
       - name: Check pipelineserver Logs
         if: always()
         run: |
