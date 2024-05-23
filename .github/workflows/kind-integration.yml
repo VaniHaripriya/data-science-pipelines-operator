@@ -186,9 +186,11 @@ jobs:
       - name: Print CA Bundle
         if: always()
         run: |
-          kubectl get configmaps -n test-dspa
-          kubectl describe configmap dsp-trusted-ca-test-dspa -n test-dspa
-          kubectl describe configmap nginx-tls-config -n test-dspa
+          kubectl get configmaps -n test-dspa   
+          echo "nginx configmap:"      
+          kubectl get configmap nginx-tls-config -n test-dspa -o jsonpath='{.data.rootCA\.crt}' 
+          echo "cabundle configmap:"
+          kubectl get configmap dsp-trusted-ca-test-dspa -n test-dspa -o jsonpath='{.data.dsp-ca\.crt}' | tail -n 100
 
       - name: Check pipelineserver Logs
         if: always()
