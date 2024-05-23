@@ -149,45 +149,21 @@ jobs:
           DSPA_NAME: ${{ env.DSPA_NAME }}
           DSPA_PATH: ${{ env.DSPA_PATH }}
         run: |
-            make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_PATH}
+            make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_PATH}    
 
-      - name: Check DSPO Logs
-        if: always()
-        run: |
-          dspo_pod=$(kubectl get pods -n opendatahub | grep 'data-science-pipelines-operator' | awk '{print $1}')
-          kubectl logs -n opendatahub $dspo_pod | tail -n 100
-
-      - name: Print CA Bundle Volume Mount Path
-        if: always()
-        run: |
-          POD_NAME=$(kubectl get pods -n test-dspa -l app=ds-pipeline-test-dspa -o jsonpath="{.items[0].metadata.name}")
-          VOLUME_NAME="ca-bundle"
-          MOUNT_PATH=$(kubectl get pod ${POD_NAME} -n test-dspa -o jsonpath="{.spec.containers[*].volumeMounts[?(@.name=='${VOLUME_NAME}')].mountPath}")
-          VOLUME_DETAILS=$(kubectl get pod ${POD_NAME} -n test-dspa -o jsonpath="{.spec.volumes[?(@.name=='${VOLUME_NAME}')]}")
-          echo "The details of the ${VOLUME_NAME} volume are: ${VOLUME_DETAILS}"
-          echo "The CA bundle volume mount path is: $MOUNT_PATH"
-
-      - name: Print CA Bundle
-        if: always()
-        run: |
-          kubectl get configmaps -n test-dspa   
-          echo "nginx configmap:"      
-          kubectl get configmap nginx-tls-config -n test-dspa -o jsonpath='{.data.rootCA\.crt}' 
-          echo "cabundle configmap:"
-          kubectl get configmap dsp-trusted-ca-test-dspa -n test-dspa -o jsonpath='{.data.dsp-ca\.crt}' | tail -n 100
-
+      
       - name: Check pipelineserver Logs
         if: always()
         run: |
           # Get the list of pods with Error status
-          error_pods=$(kubectl get pods -n test-dspa -o json | jq -r '.items[] | select(.metadata.name | startswith("hello-pipeline")) | select(.status.containerStatuses[]?.state.terminated.reason == "Error") | .metadata.name')
+          pipeline_pods=$(kubectl get pods -n test-dspa -o json | jq -r '.items[] | select(.metadata.name | startswith("hello-pipeline"))| .metadata.name')
 
           # Print the list of pods
-          echo "Pods with Error status:"
-          echo "$error_pods"
+          echo "Pipeline pods:"
+          echo "$pipeline_pods"
 
           # Check logs for each pod
-          for pod in $error_pods; do
+          for pod in $pipeline_pods; do
           echo "Checking logs for pod: $pod"
           kubectl logs -n test-dspa $pod | tail -n 100
           done
