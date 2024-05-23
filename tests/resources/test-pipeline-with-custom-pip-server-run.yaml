@@ -24,7 +24,7 @@ deploymentSpec:
         - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
           \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n
           \ PIP_DISABLE_PIP_VERSION_CHECK=1\n         
-          \ export SSL_CERT_FILE=/dsp-custom-certs/dsp-ca.crt\n
+          \ export CURL_CA_BUNDLE=/dsp-custom-certs/dsp-ca.crt\n
           \ echo 'Testing connectivity to the nginx service with curl...'\n
           \ curl --cacert /dsp-custom-certs/dsp-ca.crt https://nginx-service.test-pypiserver.svc.cluster.local:443\n\n
           \ python3 -m pip install --quiet --no-warn-script-location --index-url  https://nginx-service.test-pypiserver.svc.cluster.local:443/simple/\
