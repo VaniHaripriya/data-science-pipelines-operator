@@ -140,7 +140,7 @@ jobs:
         env:
           RESOURCES_DIR: ${{ github.workspace }}/.github/resources/pypiserver/base
         run: |
-          kubectl apply -f nginx-tls-config.yaml -n ${{ env.DSPA_NAMESPACE }}      
+          kubectl apply -f $RESOURCES_DIR/nginx-tls-config.yaml -n ${{ env.DSPA_NAMESPACE }}      
 
       - name: Run tests
         working-directory: ${{ github.workspace }}
