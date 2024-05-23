@@ -194,16 +194,16 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	loggr.Info("Portforwarding service Successfully set up.")
 }
 
-func (suite *IntegrationTestSuite) TearDownSuite() {
-	if !skipCleanup {
-		err := testUtil.DeleteDSPA(suite.T(), ctx, clientmgr.k8sClient, DSPA.Name, DSPANamespace, DeployTimeout, PollInterval)
-		assert.NoError(suite.T(), err)
-	}
-	if forwarderResult != nil {
-		forwarderResult.Close()
-	}
-	cancel()
-}
+// func (suite *IntegrationTestSuite) TearDownSuite() {
+// 	if !skipCleanup {
+// 		err := testUtil.DeleteDSPA(suite.T(), ctx, clientmgr.k8sClient, DSPA.Name, DSPANamespace, DeployTimeout, PollInterval)
+// 		assert.NoError(suite.T(), err)
+// 	}
+// 	if forwarderResult != nil {
+// 		forwarderResult.Close()
+// 	}
+// 	cancel()
+// }
 
 func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
