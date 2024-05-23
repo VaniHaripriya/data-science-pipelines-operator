@@ -40,6 +40,8 @@ spec:
           volumeMounts:
             - mountPath: /opt/app-root/packages
               name: pypi-datastore
+            - name: ssl-certs
+              mountPath: /etc/ssl/certs
         - image: "quay.io/jitesoft/nginx"
           name: nginx
           command:
