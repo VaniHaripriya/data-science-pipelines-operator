@@ -172,7 +172,7 @@ jobs:
         run: |
           dspo_pod=$(kubectl get pods -n opendatahub | grep 'data-science-pipelines-operator' | awk '{print $1}')
           kubectl logs -n opendatahub $dspo_pod | tail -n 100
-          
+
       - name: Print CA Bundle Volume Mount Path
         if: always()
         run: |
@@ -188,6 +188,7 @@ jobs:
         run: |
           kubectl get configmaps -n test-dspa
           kubectl describe configmap dsp-trusted-ca-test-dspa -n test-dspa
+          kubectl describe configmap nginx-tls-config -n test-dspa
 
       - name: Check pipelineserver Logs
         if: always()
