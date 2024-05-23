@@ -173,11 +173,14 @@ jobs:
           POD_NAME=$(kubectl get pods -n test-dspa -l app=ds-pipeline-test-dspa -o jsonpath="{.items[0].metadata.name}")
           VOLUME_NAME="ca-bundle"
           MOUNT_PATH=$(kubectl get pod ${POD_NAME} -n test-dspa -o jsonpath="{.spec.containers[*].volumeMounts[?(@.name=='${VOLUME_NAME}')].mountPath}")
+          VOLUME_DETAILS=$(kubectl get pod ${POD_NAME} -n test-dspa -o jsonpath="{.spec.volumes[?(@.name=='${VOLUME_NAME}')]}")
+          echo "The details of the ${VOLUME_NAME} volume are: ${VOLUME_DETAILS}"
           echo "The CA bundle volume mount path is: $MOUNT_PATH"
 
       - name: Print CA Bundle
         if: always()
         run: |
+          kubectl get configmaps -n test-dspa
           kubectl describe configmap dsp-trusted-ca-test-dspa -n test-dspa
 
       - name: Check pipelineserver Logs
