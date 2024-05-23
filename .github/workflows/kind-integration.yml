@@ -104,18 +104,7 @@ jobs:
 
       - name: Create Pypiserver Namespace
         run: |
-          kubectl create namespace ${{ env.PYPISERVER_NAMESPACE }}
-
-      - name: Generate Self-Signed cert
-        working-directory: ${{ github.workspace }}/.github/resources/pypiserver
-        run: |
-          sh generate-deploy-certs.sh
-
-      - name: Create Self-Signed cert
-        working-directory: ${{ github.workspace }}/.github/resources/pypiserver/certs
-        run: |
-          cat domain.crt rootCA.crt > server.crt
-          kubectl create secret generic nginx-certs --from-file=server.crt=server.crt --from-file=private.key=domain.key -n ${{ env.PYPISERVER_NAMESPACE }}
+          kubectl create namespace ${{ env.PYPISERVER_NAMESPACE }}     
 
       - name: Deploy pypi-server
         working-directory: ${{ github.workspace }}/.github/resources/pypiserver/base
@@ -147,16 +136,11 @@ jobs:
         run: |
           kustomize build . |  oc -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} apply -f -
 
-      - name: Apply PIP Server rootCA ConfigMap
+      - name: Apply PIP Server ConfigMap
         env:
-          RESOURCES_DIR: ${{ github.workspace }}/.github/resources/pypiserver/certs
+          RESOURCES_DIR: ${{ github.workspace }}/.github/resources/pypiserver/base
         run: |
-          kubectl create configmap nginx-tls-config --from-file=rootCA.crt=$RESOURCES_DIR/rootCA.crt -n ${{ env.DSPA_NAMESPACE }}
-
-      - name: Apply MariaDB and Minio Secrets and Configmaps in the External Namespace
-        working-directory: ${{ github.workspace }}/.github/resources/external-pre-reqs
-        run: |
-          kustomize build . |  oc -n ${{ env.DSPA_EXTERNAL_NAMESPACE }} apply -f -
+          kubectl apply -f nginx-tls-config.yaml -n ${{ env.DSPA_NAMESPACE }}      
 
       - name: Run tests
         working-directory: ${{ github.workspace }}
