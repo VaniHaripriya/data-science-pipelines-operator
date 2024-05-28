@@ -44,7 +44,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-run.yaml",
-			"name": "test-pipeline-run.yaml"
+			"name":       "test-pipeline-run.yaml",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
@@ -61,7 +61,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
-			"name": "test-pipeline-with-custom-pip-server-run.yaml"
+			"name":       "test-pipeline-with-custom-pip-server-run.yaml",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
