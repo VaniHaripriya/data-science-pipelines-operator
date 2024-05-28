@@ -20,7 +20,7 @@ package integration
 
 import (
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -34,7 +34,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		response, err := http.Get(fmt.Sprintf("%s/apis/v2beta1/pipelines", APIServerURL))
 		require.NoError(t, err)
 
-		responseData, err := io.ReadAll(response.Body)
+		responseData, err := ioutil.ReadAll(response.Body)
 		require.NoError(t, err)
 		assert.Equal(t, 200, response.StatusCode)
 		loggr.Info(string(responseData))
@@ -42,15 +42,15 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 
 	suite.T().Run("Should successfully upload a pipeline", func(t *testing.T) {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
-		name := "test-pipeline-run.yaml"
 		vals := map[string]string{
-			"uploadfile": "@resources/" + name,
+			"uploadfile": "@resources/test-pipeline-run.yaml",
+			"name": "test-pipeline-run.yaml"
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
-		responseData, err := io.ReadAll(response.Body)
+		responseData, err := ioutil.ReadAll(response.Body)
 		responseString := string(responseData)
 		loggr.Info(responseString)
 		require.NoError(t, err)
@@ -59,15 +59,15 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 
 	suite.T().Run("Should successfully upload a pipeline with custom pip server", func(t *testing.T) {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
-		pipelineName := "test-pipeline-with-custom-pip-server-run.yaml"
 		vals := map[string]string{
-			"uploadfile": "@resources/" + pipelineName,
+			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
+			"name": "test-pipeline-with-custom-pip-server-run.yaml"
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
-		responseData, err := io.ReadAll(response.Body)
+		responseData, err := ioutil.ReadAll(response.Body)
 		responseString := string(responseData)
 		loggr.Info(responseString)
 		require.NoError(t, err)

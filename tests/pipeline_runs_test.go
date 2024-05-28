@@ -35,6 +35,7 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 	suite.T().Run("Should create a Pipeline Run", func(t *testing.T) {
 		// Retrieve Pipeline ID to create a new run
 		pipelineDisplayName := "[Demo] iris-training"
+		t.Log("Running test:", t.vals())
 		pipelineID := TestUtil.RetrievePipelineId(t, APIServerURL, pipelineDisplayName)
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)
@@ -54,7 +55,7 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 
 	suite.T().Run("Should create a Pipeline Run using custom pip server", func(t *testing.T) {
 		// Retrieve Pipeline ID to create a new run
-		pipelineDisplayName := "test-pipeline-with-custom-pip-server-run.yaml"
+		pipelineDisplayName := t.requestBody("")
 		pipelineID := TestUtil.RetrievePipelineId(t, APIServerURL, pipelineDisplayName)
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)

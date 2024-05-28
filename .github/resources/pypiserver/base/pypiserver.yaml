@@ -32,11 +32,11 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: "0.02m"
-              memory: 12Mi
+              cpu: "500m"
+              memory: 1Gi
             limits:
-              cpu: "0.02m"
-              memory: 12Mi
+              cpu: "500m"
+              memory: 1Gi
           volumeMounts:
             - mountPath: /opt/app-root/packages
               name: pypi-datastore
@@ -55,11 +55,11 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: "0.02m"
-              memory: 12Mi
+              cpu: "500m"
+              memory: 1Gi
             limits:
-              cpu: "0.02m"
-              memory: 12Mi
+              cpu: "500m"
+              memory: 1Gi
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/nginx/ssl

@@ -4,6 +4,13 @@ metadata:
   name: sample
 spec:
   dspVersion: v2
+  apiServer:
+    deploy: true
+    enableSamplePipeline: true
+    # If developing against a cluster using self-signed certs, then uncomment this field.
+    cABundle:
+      configMapName: nginx-tls-config
+      configMapKey: rootCA.crt  
   objectStorage:
     minio:
       deploy: true

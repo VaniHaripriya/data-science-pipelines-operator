@@ -4,15 +4,23 @@ metadata:
   name: sample
 spec:
   dspVersion: v2
+  apiServer:
+    deploy: true
+    enableOauth: false
+    enableSamplePipeline: true
+    cABundle:
+      configMapName: root-ca
+      configMapKey: public.crt
   objectStorage:
     externalStorage:
-      bucket: rhods-dsp-dev
-      host: s3.us-east-2.amazonaws.com
+      bucket: mlpipeline
+      host: minio.test-minio.svc.cluster.local
+      port: "9000"
       region: us-east-2
       s3CredentialsSecret:
-        accessKey: k8saccesskey
-        secretKey: k8ssecretkey
-        secretName: aws-bucket-creds
+        accessKey: accesskey
+        secretKey: secretkey
+        secretName: minio
       scheme: https
   # Optional
   mlpipelineUI:
