@@ -55,7 +55,6 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 	suite.T().Run("Should create a Pipeline Run using custom pip server", func(t *testing.T) {
 		// Retrieve Pipeline ID to create a new run
 		pipelineDisplayName := "Test pipeline run with custom pip server"
-		loggr.Info(pipelineName)
 		pipelineID := TestUtil.RetrievePipelineId(t, APIServerURL, pipelineDisplayName)
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)
