@@ -30,7 +30,6 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
-	var pipelineName string
 
 	suite.T().Run("Should successfully fetch pipelines", func(t *testing.T) {
 		response, err := http.Get(fmt.Sprintf("%s/apis/v2beta1/pipelines", APIServerURL))
@@ -46,7 +45,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-run.yaml",
-			"name":       "test-pipeline-run.yaml",
+			"name":       "Test pipeline run",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
@@ -61,10 +60,9 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 
 	suite.T().Run("Should successfully upload a pipeline with custom pip server", func(t *testing.T) {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
-		pipelineName = "test-pipeline-with-custom-pip-server-run.yaml"
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
-			"name":       pipelineName,
+			"name":       "Test pipeline run with custom pip server",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
