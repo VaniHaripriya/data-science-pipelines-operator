@@ -19,8 +19,9 @@ limitations under the License.
 package integration
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -30,12 +31,11 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
-
 	suite.T().Run("Should successfully fetch pipelines", func(t *testing.T) {
 		response, err := http.Get(fmt.Sprintf("%s/apis/v2beta1/pipelines", APIServerURL))
 		require.NoError(t, err)
 
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		require.NoError(t, err)
 		assert.Equal(t, 200, response.StatusCode)
 		loggr.Info(string(responseData))
@@ -45,13 +45,18 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload", APIServerURL)
 		vals := map[string]string{
 			"uploadfile": "@resources/test-pipeline-run.yaml",
-			"name":       "Test pipeline run",
+			"name":       "Test Pipeline Run",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
+		// Print the body for debugging
+		var bodyCopy bytes.Buffer
+		bodyCopy.Write(body.Bytes())
+		fmt.Println(bodyCopy.String())
+
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		responseString := string(responseData)
 		loggr.Info(responseString)
 		require.NoError(t, err)
@@ -68,7 +73,7 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
-		responseData, err := ioutil.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		responseString := string(responseData)
 		loggr.Info(responseString)
 		require.NoError(t, err)
