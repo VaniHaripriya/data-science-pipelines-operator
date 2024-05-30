@@ -65,7 +65,16 @@ func FormFromFile(t *testing.T, form map[string]string) (*bytes.Buffer, string) 
 			err := mp.WriteField(key, val)
 			require.NoError(t, err, "Writing form field failed")
 		}
+		fmt.Printf("Added field: %s = %s\n", key, val)
 	}
+
+	// Close the multipart writer to complete the form
+	err := mp.Close()
+	require.NoError(t, err, "Closing multipart writer failed")
+
+	// Debugging: print the body content before returning
+	fmt.Println("Form body content:")
+	fmt.Println(body.String())
 
 	return body, mp.FormDataContentType()
 }

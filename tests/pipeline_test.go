@@ -19,7 +19,6 @@ limitations under the License.
 package integration
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -49,10 +48,8 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
 
-		// Print the body for debugging
-		var bodyCopy bytes.Buffer
-		bodyCopy.Write(body.Bytes())
-		fmt.Println(bodyCopy.String())
+		fmt.Println("Final request body:")
+		fmt.Println(body.String())
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
