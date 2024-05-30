@@ -151,6 +151,20 @@ jobs:
         run: |
             make integrationtest K8SAPISERVERHOST=$(oc whoami --show-server) DSPANAMESPACE=${NAMESPACE} DSPAPATH=${DSPA_PATH}
 
+      - name: Check pipelineserver Logs
+        if: always()
+        run: |
+           # Get the list of pods with Error status
+           error_pods=$(kubectl get pods -n test-dspa -o json | jq -r '.items[] | select(.metadata.name | startswith("hello-pipeline")) | select(.status.containerStatuses[]?.state.terminated.reason == "Error") | .metadata.name')
+           # Print the list of pods
+           echo "Pods with Error status:"
+           echo "$error_pods"
+           # Check logs for each pod
+           for pod in $error_pods; do
+           echo "Checking logs for pod: $pod"
+           kubectl logs -n test-dspa $pod | tail -n 100
+           done
+
       - name: Run tests for DSPA with External Connections
         working-directory: ${{ github.workspace }}
         env:

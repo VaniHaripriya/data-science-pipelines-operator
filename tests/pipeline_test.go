@@ -47,16 +47,9 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload?name=%s", APIServerURL, url.QueryEscape(name))
 
 		vals := map[string]string{
-			"uploadfile": "@resources/test-pipeline-run.yaml", // Only the file field remains in the form data
+			"uploadfile": "@resources/test-pipeline-run.yaml",
 		}
-
 		body, contentType := TestUtil.FormFromFile(t, vals)
-
-		// Debugging: print the request URL
-		fmt.Println("Request URL:", postUrl)
-		// Debugging: print the body content
-		fmt.Println("Form body content:")
-		fmt.Println(body.String())
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
@@ -76,12 +69,6 @@ func (suite *IntegrationTestSuite) TestAPIServerDeployment() {
 			"uploadfile": "@resources/test-pipeline-with-custom-pip-server-run.yaml",
 		}
 		body, contentType := TestUtil.FormFromFile(t, vals)
-
-		// Debugging: print the request URL
-		fmt.Println("Request URL:", postUrl)
-		// Debugging: print the body content
-		fmt.Println("Form body content:")
-		fmt.Println(body.String())
 
 		response, err := http.Post(postUrl, contentType, body)
 		require.NoError(t, err)
