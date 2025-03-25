@@ -42,9 +42,7 @@ type Pipeline struct {
 	} `json:"pipelines"`
 }
 type PipelineRunResponse struct {
-	Run struct {
-		RunID string `json:"run_id"`
-	} `json:"run"`
+	RunID string `json:"run_id"`
 }
 
 // FormFromFile creates a multipart form data from the provided form map where the values are paths to files.
@@ -164,8 +162,8 @@ func RetrieveRunID(t *testing.T, responseData []byte) string {
 	err := json.Unmarshal(responseData, &runResponse)
 	require.NoError(t, err, "Failed to parse run response JSON")
 
-	if runResponse.Run.RunID == "" {
+	if runResponse.RunID == "" {
 		t.Fatalf("Run ID is empty in response: %s", string(responseData))
 	}
-	return runResponse.Run.RunID
+	return runResponse.RunID
 }
