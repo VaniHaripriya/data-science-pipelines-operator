@@ -110,7 +110,7 @@ func (suite *IntegrationTestSuite) TestFetchArtifacts() {
 		responseData, err = io.ReadAll(response.Body)
 		require.NoError(t, err, "Failed to read run response data")
 		require.Equal(t, http.StatusOK, response.StatusCode, "Unexpected HTTP status code")
-		runID = TestUtil.RetreiveRunID(responseData)
+		runID = TestUtil.RetrieveRunID(responseData)
 		log.Printf("Pipeline run created successfully with ID: %s", runID)
 
 		err = TestUtil.WaitForPipelineRunCompletion(t, suite.Clientmgr.httpClient, APIServerURL)
