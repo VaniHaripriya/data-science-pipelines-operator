@@ -105,12 +105,12 @@ func (suite *IntegrationTestSuite) TestFetchArtifacts() {
 		runUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		bodyRun := TestUtil.FormatRequestBody(t, pipelineID, name)
 		contentTypeRun := "application/json"
-		response, err = suite.Clientmgr.httpClient.Post(runUrl, contentTypeRun, bytes.NewReader(bodyRun))
+		response, err := suite.Clientmgr.httpClient.Post(runUrl, contentTypeRun, bytes.NewReader(bodyRun))
 		require.NoError(t, err, "Failed to create pipeline run")
-		responseData, err = io.ReadAll(response.Body)
+		responseData, err := io.ReadAll(response.Body)
 		require.NoError(t, err, "Failed to read run response data")
 		require.Equal(t, http.StatusOK, response.StatusCode, "Unexpected HTTP status code")
-		runID = TestUtil.RetrieveRunID(t, responseData)
+		runID := TestUtil.RetrieveRunID(t, responseData)
 		log.Printf("Pipeline run created successfully with ID: %s", runID)
 
 		err = TestUtil.WaitForPipelineRunCompletion(t, suite.Clientmgr.httpClient, APIServerURL)
