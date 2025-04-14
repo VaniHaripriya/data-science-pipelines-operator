@@ -82,7 +82,7 @@ func (suite *IntegrationTestSuite) TestFetchArtifacts() {
 			Artifacts []ResponseArtifact `json:"artifacts"`
 		}
 
-		name := "[Demo] iris-training"
+		name := "Test Iris Pipeline"
 		uploadUrl := fmt.Sprintf("%s/apis/v2beta1/pipelines/upload?name=%s", APIServerURL, url.QueryEscape(name))
 		log.Printf("Uploading pipeline: %s to URL: %s", name, uploadUrl)
 
