@@ -114,7 +114,7 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 	}
 
 	// Sets the suite DSPA to deploy DSP with the K8s Pipeline Store set.
-	suite.DSPA.Spec.APIServer.PipelineStorage = "true"
+	suite.DSPA.Spec.APIServer.PipelineStorage = "kubernetes"
 
 	suite.T().Run("with default MariaDB and Minio", func(t *testing.T) {
 		t.Run(fmt.Sprintf("should have %d pods", podCount), func(t *testing.T) {
@@ -144,20 +144,29 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 					require.NoError(t, err1)
 					for _, pod := range totalPodList.Items {
 						t.Log(fmt.Sprintf("Pod Name: %s, Status: %s", pod.Name, pod.Status.Phase))
-
+					}
+					return false
+				} else {
+					totalPodList := &corev1.PodList{}
+					listOpts1 := []client.ListOption{
+						client.InNamespace(suite.DSPANamespace),
+					}
+					err1 := suite.Clientmgr.k8sClient.List(suite.Ctx, totalPodList, listOpts1...)
+					require.NoError(t, err1)
+					for _, pod := range totalPodList.Items {
 						if pod.Name == deployments[0] {
 							for _, arg := range pod.Spec.Containers[0].Args {
 								if arg == "--pipelinesStoreKubernetes=true" {
 									t.Log("API Server has K8s Native API configured")
-									break
+									return true
 								}
 							}
+							t.Log("API Server pod found, but flag not set")
 							return false
 						}
 					}
+					t.Log("API Server pod not found even though pod count matches!")
 					return false
-				} else {
-					return true
 				}
 			}, timeout, interval)
 		})
