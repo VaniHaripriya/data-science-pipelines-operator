@@ -22,6 +22,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -37,8 +38,8 @@ type PipelineRequest struct {
 }
 type Pipeline struct {
 	Pipelines []struct {
-		PipelineID  string `json:"pipeline_id"`
-		DisplayName string `json:"display_name"`
+		PipelineID string `json:"pipeline_id"`
+		Name       string `json:"name"`
 	} `json:"pipelines"`
 }
 type PipelineRunResponse struct {
@@ -74,7 +75,7 @@ func FormFromFile(t *testing.T, form map[string]string) (*bytes.Buffer, string) 
 	return body, mp.FormDataContentType()
 }
 
-func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL string, PipelineDisplayName string) (string, error) {
+func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL string, PipelineName string) (string, error) {
 	response, err := httpClient.Get(fmt.Sprintf("%s/apis/v2beta1/pipelines", APIServerURL))
 	require.NoError(t, err)
 	responseData, err := io.ReadAll(response.Body)
@@ -84,7 +85,7 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 	err = json.Unmarshal(responseData, &pipelineData)
 	require.NoError(t, err)
 	for _, pipeline := range pipelineData.Pipelines {
-		if pipeline.DisplayName == PipelineDisplayName {
+		if pipeline.Name == PipelineName {
 			pipelineID = &pipeline.PipelineID
 			break
 		}
@@ -97,9 +98,9 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 	}
 }
 
-func FormatRequestBody(t *testing.T, pipelineID string, PipelineDisplayName string) []byte {
+func FormatRequestBody(t *testing.T, pipelineID string, PipelineName string) []byte {
 	requestBody := PipelineRequest{
-		DisplayName: PipelineDisplayName,
+		DisplayName: PipelineName,
 		PipelineVersionReference: struct {
 			PipelineID string `json:"pipeline_id"`
 		}{PipelineID: pipelineID},
@@ -166,4 +167,18 @@ func RetrieveRunID(t *testing.T, responseData []byte) string {
 		t.Fatalf("Run ID is empty in response: %s", string(responseData))
 	}
 	return runResponse.RunID
+}
+
+func ApplyPipelineYAML(t *testing.T, yamlPath, namespace string) {
+	// Validate inputs to prevent command injection
+	if strings.ContainsAny(yamlPath, "|;&$`") || strings.ContainsAny(namespace, "|;&$`") {
+		t.Fatalf("Invalid characters in yamlPath or namespace")
+	}
+	if !strings.HasSuffix(yamlPath, ".yaml") && !strings.HasSuffix(yamlPath, ".yml") {
+		t.Fatalf("yamlPath must be a YAML file")
+	}
+
+	cmd := exec.Command("kubectl", "apply", "-f", yamlPath, "-n", namespace)
+	out, err := cmd.CombinedOutput()
+	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out))
 }
