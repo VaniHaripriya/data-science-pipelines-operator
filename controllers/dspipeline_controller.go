@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/opendatahub-io/data-science-pipelines-operator/controllers/dspastatus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -175,8 +176,8 @@ func (r *DSPAReconciler) DeleteResourceIfItExists(ctx context.Context, obj clien
 //+kubebuilder:rbac:groups=core,resources=events,verbs=create;patch;list
 //+kubebuilder:rbac:groups=monitoring.coreos.com,resources=servicemonitors,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=workload.codeflare.dev,resources=appwrappers;appwrappers/finalizers;appwrappers/status,verbs=create;delete;deletecollection;get;list;patch;update;watch
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipelines;pipelines/status,verbs=create;get;list;watch;update;patch;delete
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipelineversions;pipelineversions/status,verbs=create;get;list;watch;update;patch;delete
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipelines;pipelines/status;pipelines/finalizers,verbs=create;get;list;watch;update;patch;delete
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipelineversions;pipelineversions/status;pipelineversions/finalizers,verbs=create;get;list;watch;update;patch;delete
 //+kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;create;update;delete
 
 func (r *DSPAReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -235,9 +236,15 @@ func (r *DSPAReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if controllerutil.ContainsFinalizer(dspa, finalizerName) {
 			params.Name = dspa.Name
 			params.Namespace = dspa.Namespace
+			params.DSPONamespace = os.Getenv("DSPO_NAMESPACE")
 			if err := r.cleanUpResources(params); err != nil {
 				return ctrl.Result{}, err
 			}
+
+			if err := r.CleanWebhook(ctx, dspa, params); err != nil {
+				return ctrl.Result{}, err
+			}
+
 			controllerutil.RemoveFinalizer(dspa, finalizerName)
 			if err := r.Update(ctx, dspa); err != nil {
 				return ctrl.Result{}, err
@@ -417,7 +424,7 @@ func (r *DSPAReconciler) checkWebhookStatus(ctx context.Context, params *DSPAPar
 	return false
 }
 
-func (r *DSPAReconciler) checkAvailableKubernetesDSPAs(ctx context.Context) (bool, error) {
+func (r *DSPAReconciler) checkAvailableKubernetesDSPAs(ctx context.Context, excludeName, excludeNamespace string) (bool, error) {
 	list := &dspav1.DataSciencePipelinesApplicationList{}
 	err := r.List(ctx, list)
 	if err != nil {
@@ -425,7 +432,10 @@ func (r *DSPAReconciler) checkAvailableKubernetesDSPAs(ctx context.Context) (boo
 	}
 
 	for _, dspa := range list.Items {
-		if dspa.Spec.PipelineStorage == "kubernetes" {
+		if dspa.Name == excludeName && dspa.Namespace == excludeNamespace {
+			continue
+		}
+		if dspa.Spec.APIServer != nil && dspa.Spec.APIServer.PipelineStorage == "kubernetes" {
 			return true, nil
 		}
 	}

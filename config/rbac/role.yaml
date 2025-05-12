@@ -19,6 +19,30 @@ rules:
   - update
   - watch
 - apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - apiextensions.k8s.io
   resources:
   - customresourcedefinitions
@@ -207,6 +231,7 @@ rules:
   - pipelines.kubeflow.org
   resources:
   - pipelines
+  - pipelines/finalizers
   - pipelines/status
   verbs:
   - create
@@ -220,6 +245,7 @@ rules:
   - pipelines.kubeflow.org
   resources:
   - pipelineversions
+  - pipelineversions/finalizers
   - pipelineversions/status
   verbs:
   - create

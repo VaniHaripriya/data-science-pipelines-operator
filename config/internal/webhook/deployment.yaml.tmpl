@@ -20,7 +20,7 @@ spec:
         component: data-science-pipelines
     spec:
       containers:
-        - env:            
+        - env:
             - name: POD_NAMESPACE
               value: "{{.DSPONamespace}}"
           image: {{.APIServer.Image}}
