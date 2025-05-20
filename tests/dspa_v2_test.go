@@ -122,18 +122,17 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 			interval := time.Second * 2
 			actualPodCount := 0
 
+			// First check if all pods are running
 			require.Eventually(t, func() bool {
 				podList := &corev1.PodList{}
-				// retrieve the running pods only, to allow for multiple reruns of  the test suite
 				listOpts := []client.ListOption{
 					client.InNamespace(suite.DSPANamespace),
 					client.MatchingFields{"status.phase": string(corev1.PodRunning)},
 				}
 				err := suite.Clientmgr.k8sClient.List(suite.Ctx, podList, listOpts...)
-				require.NoError(suite.T(), err)
+				require.NoError(t, err)
 				actualPodCount = len(podList.Items)
 
-				// Print out pod statuses for troubleshooting
 				if podCount != actualPodCount {
 					t.Log(fmt.Sprintf("expected %d pods to successfully deploy, got %d instead. Pods in the namespace:", podCount, actualPodCount))
 					totalPodList := &corev1.PodList{}
@@ -146,7 +145,12 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 						t.Log(fmt.Sprintf("Pod Name: %s, Status: %s", pod.Name, pod.Status.Phase))
 					}
 					return false
-				} else {
+				}
+				return true
+			}, timeout, interval)
+
+			t.Run("should have API Server configured with K8s Native API", func(t *testing.T) {
+				require.Eventually(t, func() bool {
 					totalPodList := &corev1.PodList{}
 					listOpts1 := []client.ListOption{
 						client.InNamespace(suite.DSPANamespace),
@@ -167,9 +171,10 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 					}
 					t.Log("API Server pod not found even though pod count matches!")
 					return false
-				}
-			}, timeout, interval)
+				}, timeout, interval)
+			})
 		})
+
 		for _, deployment := range deployments {
 			t.Run(fmt.Sprintf("should have a ready %s deployment", deployment), func(t *testing.T) {
 				testUtil.TestForSuccessfulDeployment(t, suite.Ctx, suite.DSPANamespace, deployment, suite.Clientmgr.k8sClient)
