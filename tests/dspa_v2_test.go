@@ -154,23 +154,33 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 					totalPodList := &corev1.PodList{}
 					listOpts1 := []client.ListOption{
 						client.InNamespace(suite.DSPANamespace),
+						client.MatchingLabels{
+							"app": deployments[0],
+						},
 					}
 					err1 := suite.Clientmgr.k8sClient.List(suite.Ctx, totalPodList, listOpts1...)
 					require.NoError(t, err1)
-					for _, pod := range totalPodList.Items {
-						t.Log(fmt.Sprintf("Checking pod: %s against deployment: %s", pod.Name, deployments[0]))
-						if pod.Name == deployments[0] {
-							for _, arg := range pod.Spec.Containers[0].Args {
-								if arg == "--pipelinesStoreKubernetes=true" {
-									t.Log("API Server has K8s Native API configured")
-									return true
-								}
-							}
-							t.Log("API Server pod found, but flag not set")
-							return false
-						}
+
+					if len(totalPodList.Items) == 0 {
+						t.Log("No pods found with app label:", deployments[0])
+						return false
 					}
-					t.Log("API Server pod not found even though pod count matches!")
+
+					for _, pod := range totalPodList.Items {
+						t.Log(fmt.Sprintf("Checking pod: %s", pod.Name))
+						if pod.Status.Phase != corev1.PodRunning {
+							t.Log(fmt.Sprintf("Pod %s is not running (status: %s)", pod.Name, pod.Status.Phase))
+							continue
+						}
+
+						for _, arg := range pod.Spec.Containers[0].Args {
+							if arg == "--pipelinesStoreKubernetes=true" {
+								t.Log(fmt.Sprintf("Found API Server pod %s with K8s Native API configured", pod.Name))
+								return true
+							}
+						}
+						t.Log(fmt.Sprintf("Pod %s found but missing --pipelinesStoreKubernetes=true flag", pod.Name))
+					}
 					return false
 				}, timeout, interval)
 			})
