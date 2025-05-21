@@ -103,48 +103,44 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 			return
 		}
 
+		// Verify API Server configuration
 		require.Eventually(t, func() bool {
-			// Get the API Server pod
 			podList := &corev1.PodList{}
-			listOpts := []client.ListOption{
+			err := suite.Clientmgr.k8sClient.List(suite.Ctx, podList,
 				client.InNamespace(suite.DSPANamespace),
 				client.MatchingLabels{
 					"app": fmt.Sprintf("ds-pipeline-%s", suite.DSPA.Name),
 				},
-			}
-			err := suite.Clientmgr.k8sClient.List(suite.Ctx, podList, listOpts...)
+			)
 			require.NoError(t, err)
 
 			if len(podList.Items) == 0 {
-				t.Log("API Server pod not found")
+				t.Logf("Expected at least 1 API Server pod, but found %d", len(podList.Items))
 				return false
 			}
 
-			// Check each API Server pod
-			for _, pod := range podList.Items {
-				if pod.Status.Phase != corev1.PodRunning {
-					t.Log(fmt.Sprintf("API Server pod %s is not running (status: %s)", pod.Name, pod.Status.Phase))
-					continue
-				}
-
-				// Find the API Server container
-				for _, container := range pod.Spec.Containers {
-					if container.Name == "ds-pipeline-api-server" {
-						t.Log(fmt.Sprintf("Checking API Server pod %s container args: %v", pod.Name, container.Args))
-
-						// Look for the K8s Native API flag
-						for _, arg := range container.Args {
-							if arg == "--pipelinesStoreKubernetes=true" {
-								t.Log(fmt.Sprintf("Found K8s Native API configuration in pod %s", pod.Name))
-								return true
-							}
-						}
-						t.Log(fmt.Sprintf("API Server pod %s found but missing --pipelinesStoreKubernetes=true flag", pod.Name))
-						return false
-					}
-				}
-				t.Log(fmt.Sprintf("API Server container not found in pod %s", pod.Name))
+			pod := podList.Items[0]
+			if pod.Status.Phase != corev1.PodRunning {
+				t.Logf("API Server pod %s is not running (status: %s)", pod.Name, pod.Status.Phase)
+				return false
 			}
+
+			for _, container := range pod.Spec.Containers {
+				if container.Name == "ds-pipeline-api-server" {
+					t.Logf("Checking API Server pod %s container args: %v", pod.Name, container.Args)
+
+					// Look for the K8s Native API flag
+					for _, arg := range container.Args {
+						if arg == "--pipelinesStoreKubernetes=true" {
+							t.Logf("Found K8s Native API configuration in pod %s", pod.Name)
+							return true
+						}
+					}
+					t.Logf("API Server pod %s found but missing --pipelinesStoreKubernetes=true flag", pod.Name)
+					return false
+				}
+			}
+			t.Logf("API Server container not found in pod %s", pod.Name)
 			return false
 		}, timeout, interval)
 	})
