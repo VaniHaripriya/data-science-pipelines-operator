@@ -158,6 +158,7 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 					err1 := suite.Clientmgr.k8sClient.List(suite.Ctx, totalPodList, listOpts1...)
 					require.NoError(t, err1)
 					for _, pod := range totalPodList.Items {
+						t.Log(fmt.Sprintf("Checking pod: %s against deployment: %s", pod.Name, deployments[0]))
 						if pod.Name == deployments[0] {
 							for _, arg := range pod.Spec.Containers[0].Args {
 								if arg == "--pipelinesStoreKubernetes=true" {
