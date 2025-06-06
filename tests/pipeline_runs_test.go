@@ -31,7 +31,7 @@ import (
 func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 
 	suite.T().Run("Should create a Pipeline Run", func(t *testing.T) {
-		// Retrieve Pipeline ID to create a new run
+		// Retrieve Pipeline ID to create a new run test
 		pipelineDisplayName := "[Demo] iris-training"
 		pipelineID, err := TestUtil.RetrievePipelineId(t, suite.Clientmgr.httpClient, APIServerURL, pipelineDisplayName)
 		require.NoError(t, err)
