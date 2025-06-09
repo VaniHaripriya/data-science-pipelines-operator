@@ -30,7 +30,7 @@ import (
 )
 
 type PipelineRequest struct {
-	Name                     string `json:"name"`
+	DisplayName              string `json:"display_name"`
 	PipelineVersionReference struct {
 		PipelineID string `json:"pipeline_id"`
 	} `json:"pipeline_version_reference"`
@@ -99,7 +99,7 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 
 func FormatRequestBody(t *testing.T, pipelineID string, PipelineDisplayName string) []byte {
 	requestBody := PipelineRequest{
-		Name: PipelineDisplayName,
+		DisplayName: PipelineDisplayName,
 		PipelineVersionReference: struct {
 			PipelineID string `json:"pipeline_id"`
 		}{PipelineID: pipelineID},
