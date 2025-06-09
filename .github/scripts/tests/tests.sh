@@ -191,7 +191,7 @@ apply_webhook_tls_secret() {
   echo "---------------------------------"
   echo "Apply Webhook TLS Secret"
   echo "---------------------------------" 
-  ( cd "${GIT_WORKSPACE}/.github/resources/webhook" && kubectl apply -f webhook-certs.yaml -n $OPENDATAHUB_NAMESPACE )
+  ( cd ".github/resources/webhook" && kubectl apply -f webhook-certs.yaml -n $OPENDATAHUB_NAMESPACE )
 }
 
 run_tests() {
