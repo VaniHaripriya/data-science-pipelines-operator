@@ -37,8 +37,8 @@ type PipelineRequest struct {
 }
 type Pipeline struct {
 	Pipelines []struct {
-		PipelineID  string `json:"pipeline_id"`
-		DisplayName string `json:"display_name"`
+		PipelineID string `json:"pipeline_id"`
+		Name       string `json:"name"`
 	} `json:"pipelines"`
 }
 type PipelineRunResponse struct {
@@ -84,7 +84,7 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 	err = json.Unmarshal(responseData, &pipelineData)
 	require.NoError(t, err)
 	for _, pipeline := range pipelineData.Pipelines {
-		if pipeline.DisplayName == PipelineDisplayName {
+		if pipeline.Name == PipelineDisplayName {
 			pipelineID = &pipeline.PipelineID
 			break
 		}

@@ -31,12 +31,13 @@ import (
 func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 
 	suite.T().Run("Should create a Pipeline Run", func(t *testing.T) {
-		// Retrieve Pipeline ID to create a new run
+		// Retrieve Pipeline ID to create a new run test
 		pipelineDisplayName := "[Demo] iris-training"
 		pipelineID, err := TestUtil.RetrievePipelineId(t, suite.Clientmgr.httpClient, APIServerURL, pipelineDisplayName)
 		require.NoError(t, err)
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)
+		loggr.Info(string(body))
 		contentType := "application/json"
 		// Create a new run
 		response, err := suite.Clientmgr.httpClient.Post(postUrl, contentType, bytes.NewReader(body))
@@ -58,6 +59,7 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 		require.NoError(t, err)
 		postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
 		body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)
+		loggr.Info(string(body))
 		contentType := "application/json"
 		// Create a new run
 		response, err := suite.Clientmgr.httpClient.Post(postUrl, contentType, bytes.NewReader(body))
