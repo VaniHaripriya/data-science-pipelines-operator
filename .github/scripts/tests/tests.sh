@@ -192,12 +192,12 @@ create_webhook_tls_secret() {
   echo "Create Webhook TLS Secret"
   echo "---------------------------------"
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -subj "/CN=webhook.$DSPO_NAMESPACE.svc" \
+    -subj "/CN=webhook.$OPENDATAHUB_NAMESPACE.svc" \
     -keyout tls.key -out tls.crt
 
   kubectl create secret tls ds-pipelines-webhook-tls \
     --cert=tls.crt --key=tls.key \
-    -n $DSPO_NAMESPACE
+    -n $OPENDATAHUB_NAMESPACE
 
   # Clean up local cert files
   rm -f tls.crt tls.key
