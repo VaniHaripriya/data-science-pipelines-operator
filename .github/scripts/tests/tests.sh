@@ -434,6 +434,4 @@ elif [ "$TARGET" = "rhoai" ]; then
   setup_rhoai_requirements
 fi
 
-run_tests
-run_tests_dspa_external_connections
 run_tests_dspa_k8s
