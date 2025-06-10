@@ -10,6 +10,8 @@ spec:
     enableOauth: false
     enableSamplePipeline: true
     pipelineStorage: kubernetes
+    webhookAnnotations:
+      cert-manager.io/inject-ca-from: opendatahub/dspa-webhook-cert
     resources:
       limits:
         cpu: 20m

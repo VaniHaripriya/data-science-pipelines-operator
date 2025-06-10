@@ -20,6 +20,7 @@ DSPA_K8S_NAMESPACE="test-k8s-dspa"
 MINIO_NAMESPACE="test-minio"
 MARIADB_NAMESPACE="test-mariadb"
 PYPISERVER_NAMESPACE="test-pypiserver"
+CERT_MANAGER_NAMEPSACE="cert-manager"
 DSPA_DEPLOY_WAIT_TIMEOUT="300"
 INTEGRATION_TESTS_DIR="${GIT_WORKSPACE}/tests"
 DSPA_PATH="${GIT_WORKSPACE}/tests/resources/dspa-lite.yaml"
@@ -129,6 +130,17 @@ deploy_pypi_server() {
   ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl -n $PYPISERVER_NAMESPACE apply -k . )
 }
 
+deploy_cert_manager() {
+  echo "---------------------------------"
+  echo "Create Cert Manager Namespace"
+  echo "---------------------------------"
+  kubectl create namespace $CERT_MANAGER_NAMEPSACE
+  echo "---------------------------------"
+  echo "Deploy Cert Manager"
+  echo "---------------------------------"
+  ( kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml )
+}
+
 wait_for_dspo_dependencies() {
   echo "---------------------------------"
   echo "Wait for DSPO Dependencies"
@@ -143,6 +155,7 @@ wait_for_dependencies() {
   kubectl wait -n $MARIADB_NAMESPACE --timeout=60s --for=condition=Available=true deployment mariadb
   kubectl wait -n $MINIO_NAMESPACE --timeout=60s --for=condition=Available=true deployment minio
   kubectl wait -n $PYPISERVER_NAMESPACE --timeout=60s --for=condition=Available=true deployment pypi-server
+  kubectl wait -n $CERT_MANAGER_NAMEPSACE --timeout=60s --for=condition=Available=true deployment cert-manager
 }
 
 upload_python_packages_to_pypi_server() {
@@ -243,6 +256,7 @@ setup_kind_requirements() {
   deploy_minio
   deploy_mariadb
   deploy_pypi_server
+  deploy_cert_manager
   wait_for_dspo_dependencies
   wait_for_dependencies
   upload_python_packages_to_pypi_server
@@ -251,6 +265,7 @@ setup_kind_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
+  apply_webhook_certs
 }
 
 setup_openshift_ci_requirements() {
@@ -261,6 +276,7 @@ setup_openshift_ci_requirements() {
   deploy_minio
   deploy_mariadb
   deploy_pypi_server
+  deploy_cert_manager
   wait_for_dspo_dependencies
   wait_for_dependencies
   upload_python_packages_to_pypi_server
@@ -269,12 +285,14 @@ setup_openshift_ci_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
+  apply_webhook_certs
 }
 
 setup_rhoai_requirements() {
   deploy_minio
   deploy_mariadb
   deploy_pypi_server
+  deploy_cert_manager
   wait_for_dependencies
   upload_python_packages_to_pypi_server
   create_dspa_namespace
@@ -282,6 +300,7 @@ setup_rhoai_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
+  apply_webhook_certs
 }
 
 # Run
