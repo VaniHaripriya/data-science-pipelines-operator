@@ -4,3 +4,5 @@ namespace: opendatahub
 resources:
   - cert-issuer.yaml
   - certificate.yaml
+  - mutating-webhook.yaml
+  - validating-webhook.yaml
