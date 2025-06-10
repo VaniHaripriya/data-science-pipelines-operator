@@ -190,7 +190,7 @@ apply_pip_server_configmap() {
 apply_webhook_tls_secret() {
   echo "---------------------------------"
   echo "Apply Webhook TLS Secret"
-  echo "---------------------------------" 
+  echo "---------------------------------"
   ( cd "${GIT_WORKSPACE}/.github/resources/webhook" && kubectl apply -f webhook-certs.yaml -n $OPENDATAHUB_NAMESPACE )
 }
 
