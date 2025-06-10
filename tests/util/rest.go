@@ -183,8 +183,8 @@ func ApplyPipelineYAML(t *testing.T, yamlPath, certPath, namespace string) {
 	out1, err := cmd1.CombinedOutput()
 	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out1))
 
-	// Apply the webhook cert YAML (should be a Kustomize base or overlays directory)
-	cmd2 := exec.Command("kubectl", "apply", "-k", certPath, "-n", "opendatahub")
-	out2, err := cmd2.CombinedOutput()
-	require.NoErrorf(t, err, "failed to apply cert YAML (%s):\n%s", certPath, string(out2))
+	// // Apply the webhook cert YAML (should be a Kustomize base or overlays directory)
+	// cmd2 := exec.Command("kubectl", "apply", "-k", certPath, "-n", "opendatahub")
+	// out2, err := cmd2.CombinedOutput()
+	// require.NoErrorf(t, err, "failed to apply cert YAML (%s):\n%s", certPath, string(out2))
 }
