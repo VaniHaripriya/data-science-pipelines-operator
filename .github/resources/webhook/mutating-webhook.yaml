@@ -2,5 +2,26 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: pipelineversions.pipelines.kubeflow.org
-  annotations:
-    cert-manager.io/inject-ca-from: $(kfp-namespace)/kfp-api-webhook-cert
+webhooks:
+  - name: pipelineversions.pipelines.kubeflow.org
+    clientConfig:
+      service:
+        name: ds-pipelines-webhook
+        namespace: opendatahub
+        path: /webhooks/mutate-pipelineversion
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURBVENDQWVtZ0F3SUJBZ0lVY05QdUhEa05mZDFMM0tLeWpCZXpXKzBzUE9Bd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0VERU9NQXdHQTFVRUF3d0ZiWGt0WTJFd0hoY05NalV3TmpFd01UWXpOVFEwV2hjTk16VXdOakE0TVRZegpOVFEwV2pBUU1RNHdEQVlEVlFRRERBVnRlUzFqWVRDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDCkFRb0NnZ0VCQU93dExqYjh2NUJvOUJwTlpUaFYrQUFqZXp1ckljd2Z0K0JkdEpybGhiU3hpWkh6dFQzVG04V3UKMStuODVtc1NVVUZLWFh6d2ZRTDFQZ0VvNGVqUkRzL1JGbWNpQ24vZE9CbjFiS1ovZk8xd3lPYVdtWDR2TTl6Uwp1OVdURXpwTFJ3czhJbmJnallSeExMSHdlcWVqQXNhWENhRkdVQTdUajVPS3NjRUo4WElKV0dPZ3Z4b3RWZUQ4CjMvOFFIb1lKU0xZc25ieFVydHYvVEFwNnRKZGhzZ2lRUSt4NkVINFZxbC9sOGkzYkJwdVRBdFZPTExlaVdBYk8Kbk0vN1RUQTlvQkNRYTVkZzJZM3lFZ3RiakpQSlVIcUFSZHo3RncxS29yMStlbVc1TVFaY3dteEt6Z1NsNHAxbQpaeEsvZkRETkw2U051WkwvalIvcFc3YW5CdkFnTWFFQ0F3RUFBYU5UTUZFd0hRWURWUjBPQkJZRUZIZXFQZHRHCmZPclYvVUdwcmU4TVR4REZkK29BTUI4R0ExVWRJd1FZTUJhQUZIZXFQZHRHZk9yVi9VR3ByZThNVHhERmQrb0EKTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUxHSGwzTFhGZVgrb0ZSQwpMV1hPbmdWY0d6cXRCUUJ4RzlQZThJODcwVjNmcDdrblZseGp4cUNZTGhpNTg0T2pTTlVVdnByWGkzMlZtck90CmdxZzdMNkxBSGRRZnhXU0F4dEtuTUpYd1Yxd3JoKzFySU5tdUQ4Ry9Ucm9kVVNSZWg4VHJKM0t6WHBNQTh5OG8KeFNEbTFPMitJZ2hUVzNtZFpWR3FWUGdDL0svVmplK2pscDdjU05UUGMydmRET3ptSmlVQW9ZZWxwSWRTVjlZdwpMWEkveXN5OE9PS2UwMHI2UlNVblVpZFlhNTRsOUtjSUFCd3Q1YWJ3U0tmTE1Xb05XZGFqS3M4MmVwZU9hWDVUCmRFOUJneG1tZVlVNmkvRkVLV1Q5ck8vZ3oxRHZFdG5ybk1OTk9NTDJzUW9BYUF0ejBDVTlYN1M2MzBiU0lLbU8KNzFFRFNKST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    rules:
+      - operations:
+          - CREATE
+          - UPDATE
+        apiGroups:
+          - pipelines.kubeflow.org
+        apiVersions:
+          - v2beta1
+        resources:
+          - pipelineversions
+        scope: Namespaced
+    admissionReviewVersions:
+      - v1
+    sideEffects: None
+    failurePolicy: Fail
