@@ -50,7 +50,8 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 		}
 		// Apply the Pipeline and PipelineVersion Kubernetes resources
 		yamlPath := "resources/test-k8s-pipeline.yaml"
-		TestUtil.ApplyPipelineYAML(t, yamlPath, suite.DSPANamespace)
+		certPath := "../.github/resources/webhook"
+		TestUtil.ApplyPipelineYAML(t, yamlPath, certPath, suite.DSPANamespace)
 
 		suite.runPipelineTest(t, "test-k8s-pipeline-run")
 	})

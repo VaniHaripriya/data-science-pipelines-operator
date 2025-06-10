@@ -169,7 +169,7 @@ func RetrieveRunID(t *testing.T, responseData []byte) string {
 	return runResponse.RunID
 }
 
-func ApplyPipelineYAML(t *testing.T, yamlPath, namespace string) {
+func ApplyPipelineYAML(t *testing.T, yamlPath, certPath, namespace string) {
 	// Validate inputs to prevent command injection
 	if strings.ContainsAny(yamlPath, "|;&$`") || strings.ContainsAny(namespace, "|;&$`") {
 		t.Fatalf("Invalid characters in yamlPath or namespace")
@@ -178,7 +178,13 @@ func ApplyPipelineYAML(t *testing.T, yamlPath, namespace string) {
 		t.Fatalf("yamlPath must be a YAML file")
 	}
 
-	cmd := exec.Command("kubectl", "apply", "-f", yamlPath, "-n", namespace)
-	out, err := cmd.CombinedOutput()
-	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out))
+	// Apply the pipeline YAML (Pipeline + PipelineVersion)
+	cmd1 := exec.Command("kubectl", "apply", "-f", yamlPath, "-n", namespace)
+	out1, err := cmd1.CombinedOutput()
+	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out1))
+
+	// Apply the webhook cert YAML (should be a Kustomize base or overlays directory)
+	cmd2 := exec.Command("kubectl", "apply", "-k", certPath, "-n", "opendatahub")
+	out2, err := cmd2.CombinedOutput()
+	require.NoErrorf(t, err, "failed to apply cert YAML (%s):\n%s", certPath, string(out2))
 }

@@ -251,7 +251,6 @@ setup_kind_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_certs
 }
 
 setup_openshift_ci_requirements() {
@@ -270,7 +269,6 @@ setup_openshift_ci_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_certs
 }
 
 setup_rhoai_requirements() {
@@ -284,7 +282,6 @@ setup_rhoai_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_certs
 }
 
 # Run
