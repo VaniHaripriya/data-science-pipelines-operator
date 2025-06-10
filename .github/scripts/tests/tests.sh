@@ -187,11 +187,11 @@ apply_pip_server_configmap() {
   ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl apply -f $RESOURCES_DIR_PYPI/nginx-tls-config.yaml -n $DSPA_NAMESPACE )
 }
 
-apply_webhook_tls_secret() {
+apply_webhook_certs() {
   echo "---------------------------------"
-  echo "Apply Webhook TLS Secret"
+  echo "Apply Webhook Certs"
   echo "---------------------------------"
-  ( cd "${GIT_WORKSPACE}/.github/resources/webhook" && kubectl apply -f webhook-certs.yaml -n $OPENDATAHUB_NAMESPACE )
+  ( cd "${GIT_WORKSPACE}/.github/resources/webhook" && kubectl -n $OPENDATAHUB_NAMESPACE apply -k . )
 }
 
 run_tests() {
@@ -251,7 +251,7 @@ setup_kind_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_tls_secret
+  apply_webhook_certs
 }
 
 setup_openshift_ci_requirements() {
@@ -270,7 +270,7 @@ setup_openshift_ci_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_tls_secret
+  apply_webhook_certs
 }
 
 setup_rhoai_requirements() {
@@ -284,7 +284,7 @@ setup_rhoai_requirements() {
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
-  apply_webhook_tls_secret
+  apply_webhook_certs
 }
 
 # Run
