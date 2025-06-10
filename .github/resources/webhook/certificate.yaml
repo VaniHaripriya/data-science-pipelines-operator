@@ -2,21 +2,14 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: dspa-webhook-cert
-  namespace: opendatahub
 spec:
-  secretName: ds-pipelines-webhook-certs  # The secret your webhook uses
-  duration: 2160h  # 90 days
-  renewBefore: 360h  # 15 days
-  subject:
-    organizations:
-      - pipelines
-  commonName: ds-pipelines-webhook.opendatahub.svc
+  commonName: dspa-webhook-cert
+  isCA: true
   dnsNames:
-    - ds-pipelines-webhook
-    - ds-pipelines-webhook.opendatahub
-    - ds-pipelines-webhook.opendatahub.svc
-    - ds-pipelines-webhook.opendatahub.svc.cluster.local
+  - ds-pipelines-webhook
+  - ds-pipelines-webhook.opendatahub
+  - ds-pipelines-webhook.opendatahub.svc
   issuerRef:
-    name: selfsigned-dspa-webhook
     kind: Issuer
-    group: cert-manager.io
+    name: dspa-webhook-selfsigned-issuer
+  secretName: ds-pipelines-webhook-tls
