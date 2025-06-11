@@ -20,7 +20,7 @@ DSPA_K8S_NAMESPACE="test-k8s-dspa"
 MINIO_NAMESPACE="test-minio"
 MARIADB_NAMESPACE="test-mariadb"
 PYPISERVER_NAMESPACE="test-pypiserver"
-CERT_MANAGER_NAMEPSACE="cert-manager"
+CERT_MANAGER_NAMESPACE="cert-manager"
 DSPA_DEPLOY_WAIT_TIMEOUT="300"
 INTEGRATION_TESTS_DIR="${GIT_WORKSPACE}/tests"
 DSPA_PATH="${GIT_WORKSPACE}/tests/resources/dspa-lite.yaml"
@@ -134,7 +134,7 @@ deploy_cert_manager() {
   echo "---------------------------------"
   echo "Create Cert Manager Namespace"
   echo "---------------------------------"
-  kubectl create namespace $CERT_MANAGER_NAMEPSACE
+  kubectl create namespace $CERT_MANAGER_NAMESPACE
   echo "---------------------------------"
   echo "Deploy Cert Manager"
   echo "---------------------------------"
@@ -155,7 +155,7 @@ wait_for_dependencies() {
   kubectl wait -n $MARIADB_NAMESPACE --timeout=60s --for=condition=Available=true deployment mariadb
   kubectl wait -n $MINIO_NAMESPACE --timeout=60s --for=condition=Available=true deployment minio
   kubectl wait -n $PYPISERVER_NAMESPACE --timeout=60s --for=condition=Available=true deployment pypi-server
-  kubectl wait -n $CERT_MANAGER_NAMEPSACE --timeout=60s --for=condition=Available=true deployment cert-manager
+  kubectl wait -n $CERT_MANAGER_NAMESPACE --timeout=60s --for=condition=Available=true deployment cert-manager
 }
 
 upload_python_packages_to_pypi_server() {
@@ -197,7 +197,10 @@ apply_pip_server_configmap() {
   echo "---------------------------------"
   echo "Apply PIP Server ConfigMap"
   echo "---------------------------------"
-  ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl apply -f $RESOURCES_DIR_PYPI/nginx-tls-config.yaml -n $DSPA_NAMESPACE )
+  for ns in $DSPA_NAMESPACE $DSPA_K8S_NAMESPACE; do
+    echo "Applying ConfigMap in namespace: $ns"
+    ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl apply -f "$RESOURCES_DIR_PYPI/nginx-tls-config.yaml" -n "$ns" )
+  done
 }
 
 apply_webhook_certs() {
