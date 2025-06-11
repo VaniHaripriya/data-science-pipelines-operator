@@ -230,8 +230,8 @@ run_tests_dspa_k8s() {
   if [ "$TARGET" = "kind" ]; then
     echo "Detected kind target: deploying cert-manager"
     deploy_cert_manager
-    kubectl wait -n $CERT_MANAGER_NAMESPACE --timeout=60s --for=condition=Available=true deployment cert-manager
-    echo "Applying Webhook certs"
+    echo "Waiting for Cert Manager pods to be ready"
+    kubectl wait -n $CERT_MANAGER_NAMESPACE --timeout=90s --for=condition=Ready pods --all
     apply_webhook_certs
   fi
   ( cd $GIT_WORKSPACE && make integrationtest K8SAPISERVERHOST=${K8SAPISERVERHOST} DSPANAMESPACE=${DSPA_K8S_NAMESPACE} DSPAPATH=${DSPA_K8S_PATH} ENDPOINT_TYPE=${ENDPOINT_TYPE})
