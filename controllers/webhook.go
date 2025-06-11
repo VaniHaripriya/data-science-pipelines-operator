@@ -34,6 +34,7 @@ const operatorName = "data-science-pipelines-operator-controller-manager"
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;update;patch;delete,resourceNames=pipelineversions.pipelines.kubeflow.org
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=create
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;update;patch;delete,resourceNames=pipelineversions.pipelines.kubeflow.org
+
 func (r *DSPAReconciler) ReconcileWebhook(ctx context.Context, params *DSPAParams) error {
 	log := r.Log.WithValues("namespace", params.DSPONamespace)
 	dataSciencePipelinesOperator := appsv1.Deployment{}
