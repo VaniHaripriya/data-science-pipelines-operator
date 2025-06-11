@@ -30,9 +30,10 @@ var webhookTemplatesDir = "webhook/"
 
 const operatorName = "data-science-pipelines-operator-controller-manager"
 
-//+kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
-
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=create
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;update;patch;delete,resourceNames=pipelineversions.pipelines.kubeflow.org
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=create
+// +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;update;patch;delete,resourceNames=pipelineversions.pipelines.kubeflow.org
 func (r *DSPAReconciler) ReconcileWebhook(ctx context.Context, params *DSPAParams) error {
 	log := r.Log.WithValues("namespace", params.DSPONamespace)
 	dataSciencePipelinesOperator := appsv1.Deployment{}
@@ -78,73 +79,45 @@ func (r *DSPAReconciler) cleanupWebhookResources(ctx context.Context, namespace 
 	webhookNamespaced := types.NamespacedName{Name: k8sWebhookName, Namespace: namespace}
 
 	// Delete MutatingWebhookConfiguration
-	mutating := &admv1.MutatingWebhookConfiguration{}
-	if err := r.Get(ctx, types.NamespacedName{Name: webhookConfigName}, mutating); err == nil {
-		log.Info("Deleting MutatingWebhookConfiguration", "webhook", mutating)
-		if err := r.Delete(ctx, mutating); err != nil {
-			log.Error(err, "Failed to delete MutatingWebhookConfiguration")
-			return err
-		}
+	if err := r.DeleteResourceIfItExists(ctx, &admv1.MutatingWebhookConfiguration{}, types.NamespacedName{Name: webhookConfigName}); err != nil {
+		log.Error(err, "Failed to delete MutatingWebhookConfiguration")
+		return err
 	}
 
 	// Delete ValidatingWebhookConfiguration
-	validating := &admv1.ValidatingWebhookConfiguration{}
-	if err := r.Get(ctx, types.NamespacedName{Name: webhookConfigName}, validating); err == nil {
-		log.Info("Deleting ValidatingWebhookConfiguration", "webhook", validating)
-		if err := r.Delete(ctx, validating); err != nil {
-			log.Error(err, "Failed to delete ValidatingWebhookConfiguration")
-			return err
-		}
+	if err := r.DeleteResourceIfItExists(ctx, &admv1.ValidatingWebhookConfiguration{}, types.NamespacedName{Name: webhookConfigName}); err != nil {
+		log.Error(err, "Failed to delete ValidatingWebhookConfiguration")
+		return err
 	}
 
-	// Delete deployments
-	deploy := &appsv1.Deployment{}
-	if err := r.Get(ctx, types.NamespacedName{Name: k8sWebhookName, Namespace: namespace}, deploy); err == nil {
-		log.Info("Deleting deployment", "name", deploy.Name)
-		if err := r.Delete(ctx, deploy); err != nil {
-			log.Error(err, "Failed to delete deployment", "name", deploy.Name)
-			return err
-		}
+	// Delete Deployment
+	if err := r.DeleteResourceIfItExists(ctx, &appsv1.Deployment{}, webhookNamespaced); err != nil {
+		log.Error(err, "Failed to delete Deployment")
+		return err
 	}
 
-	// Delete Role
-	role := &rbacv1.ClusterRole{}
-	if err := r.Get(ctx, types.NamespacedName{Name: k8sWebhookName}, role); err == nil {
-		log.Info("Deleting webhook Role", "role", role)
-		if err := r.Delete(ctx, role); err != nil {
-			log.Error(err, "Failed to delete webhook Role")
-			return err
-		}
+	// Delete ClusterRole
+	if err := r.DeleteResourceIfItExists(ctx, &rbacv1.ClusterRole{}, types.NamespacedName{Name: k8sWebhookName}); err != nil {
+		log.Error(err, "Failed to delete ClusterRole")
+		return err
 	}
 
-	// Delete RoleBinding
-	roleBinding := &rbacv1.ClusterRoleBinding{}
-	if err := r.Get(ctx, types.NamespacedName{Name: k8sWebhookName}, roleBinding); err == nil {
-		log.Info("Deleting webhook RoleBinding", "roleBinding", roleBinding)
-		if err := r.Delete(ctx, roleBinding); err != nil {
-			log.Error(err, "Failed to delete webhook RoleBinding")
-			return err
-		}
+	// Delete ClusterRoleBinding
+	if err := r.DeleteResourceIfItExists(ctx, &rbacv1.ClusterRoleBinding{}, types.NamespacedName{Name: k8sWebhookName}); err != nil {
+		log.Error(err, "Failed to delete ClusterRoleBinding")
+		return err
 	}
 
 	// Delete Service
-	svc := &corev1.Service{}
-	if err := r.Get(ctx, webhookNamespaced, svc); err == nil {
-		log.Info("Deleting webhook Service", "service", svc.Name)
-		if err := r.Delete(ctx, svc); err != nil {
-			log.Error(err, "Failed to delete webhook Service")
-			return err
-		}
+	if err := r.DeleteResourceIfItExists(ctx, &corev1.Service{}, webhookNamespaced); err != nil {
+		log.Error(err, "Failed to delete Service")
+		return err
 	}
 
 	// Delete ServiceAccount
-	sa := &corev1.ServiceAccount{}
-	if err := r.Get(ctx, webhookNamespaced, sa); err == nil {
-		log.Info("Deleting webhook ServiceAccount", "ServiceAccount", sa)
-		if err := r.Delete(ctx, sa); err != nil {
-			log.Error(err, "Failed to delete webhook ServiceAccount")
-			return err
-		}
+	if err := r.DeleteResourceIfItExists(ctx, &corev1.ServiceAccount{}, webhookNamespaced); err != nil {
+		log.Error(err, "Failed to delete ServiceAccount")
+		return err
 	}
 
 	return nil

@@ -122,6 +122,12 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	dspoNamespace := os.Getenv("DSPO_NAMESPACE")
+	if dspoNamespace == "" {
+		setupLog.Error(fmt.Errorf("missing environment variable"), "DSPO_NAMESPACE must be set")
+		os.Exit(1)
+	}
+
 	err := initConfig(configPath)
 	if err != nil {
 		glog.Fatal(err)

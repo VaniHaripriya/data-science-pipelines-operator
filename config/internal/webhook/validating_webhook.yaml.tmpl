@@ -6,7 +6,7 @@ metadata:
     service.beta.openshift.io/inject-cabundle: "true"
     {{ if .APIServer.WebhookAnnotations }}
     {{ range $key, $value := .APIServer.WebhookAnnotations }}
-    {{ $key }}: "{{ $value }}"
+    {{ printf "%q" $key }}: {{ printf "%q" $value }}
     {{ end }}
     {{end}}
 webhooks:

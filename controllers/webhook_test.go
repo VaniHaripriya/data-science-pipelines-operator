@@ -36,14 +36,8 @@ const (
 	testWebhookName   = "ds-pipelines-webhook"
 )
 
-func TestMain(m *testing.M) {
-	os.Setenv("DSPO_NAMESPACE", testDSPONamespace)
-	code := m.Run()
-	os.Unsetenv("DSPO_NAMESPACE")
-	os.Exit(code)
-}
-
 func TestWebhookLifecycle(t *testing.T) {
+	t.Setenv("DSPO_NAMESPACE", testDSPONamespace)
 	t.Run("DeployWebhook", func(t *testing.T) {
 		dspa := testutil.CreateTestDSPA()
 
