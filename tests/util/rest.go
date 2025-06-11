@@ -38,8 +38,8 @@ type PipelineRequest struct {
 }
 type Pipeline struct {
 	Pipelines []struct {
-		PipelineID string `json:"pipeline_id"`
-		Name       string `json:"name"`
+		PipelineID  string `json:"pipeline_id"`
+		DisplayName string `json:"display_name"`
 	} `json:"pipelines"`
 }
 type PipelineRunResponse struct {
@@ -75,7 +75,7 @@ func FormFromFile(t *testing.T, form map[string]string) (*bytes.Buffer, string) 
 	return body, mp.FormDataContentType()
 }
 
-func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL string, PipelineName string) (string, error) {
+func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL string, PipelineDisplayName string) (string, error) {
 	response, err := httpClient.Get(fmt.Sprintf("%s/apis/v2beta1/pipelines", APIServerURL))
 	require.NoError(t, err)
 	responseData, err := io.ReadAll(response.Body)
@@ -85,7 +85,7 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 	err = json.Unmarshal(responseData, &pipelineData)
 	require.NoError(t, err)
 	for _, pipeline := range pipelineData.Pipelines {
-		if pipeline.Name == PipelineName {
+		if pipeline.DisplayName == PipelineDisplayName {
 			pipelineID = &pipeline.PipelineID
 			break
 		}
@@ -98,9 +98,9 @@ func RetrievePipelineId(t *testing.T, httpClient http.Client, APIServerURL strin
 	}
 }
 
-func FormatRequestBody(t *testing.T, pipelineID string, PipelineName string) []byte {
+func FormatRequestBody(t *testing.T, pipelineID string, PipelineDisplayName string) []byte {
 	requestBody := PipelineRequest{
-		DisplayName: PipelineName,
+		DisplayName: PipelineDisplayName,
 		PipelineVersionReference: struct {
 			PipelineID string `json:"pipeline_id"`
 		}{PipelineID: pipelineID},
@@ -169,7 +169,7 @@ func RetrieveRunID(t *testing.T, responseData []byte) string {
 	return runResponse.RunID
 }
 
-func ApplyPipelineYAML(t *testing.T, yamlPath, certPath, namespace string) {
+func ApplyPipelineYAML(t *testing.T, yamlPath, namespace string) {
 	// Validate inputs to prevent command injection
 	if strings.ContainsAny(yamlPath, "|;&$`") || strings.ContainsAny(namespace, "|;&$`") {
 		t.Fatalf("Invalid characters in yamlPath or namespace")
@@ -178,13 +178,7 @@ func ApplyPipelineYAML(t *testing.T, yamlPath, certPath, namespace string) {
 		t.Fatalf("yamlPath must be a YAML file")
 	}
 
-	// Apply the pipeline YAML (Pipeline + PipelineVersion)
-	cmd1 := exec.Command("kubectl", "apply", "-f", yamlPath, "-n", namespace)
-	out1, err := cmd1.CombinedOutput()
-	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out1))
-
-	// // Apply the webhook cert YAML (should be a Kustomize base or overlays directory)
-	// cmd2 := exec.Command("kubectl", "apply", "-k", certPath, "-n", "opendatahub")
-	// out2, err := cmd2.CombinedOutput()
-	// require.NoErrorf(t, err, "failed to apply cert YAML (%s):\n%s", certPath, string(out2))
+	cmd := exec.Command("kubectl", "apply", "-f", yamlPath, "-n", namespace)
+	out, err := cmd.CombinedOutput()
+	require.NoErrorf(t, err, "failed to apply pipeline YAML (%s):\n%s", yamlPath, string(out))
 }

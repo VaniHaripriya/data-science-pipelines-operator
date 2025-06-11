@@ -9,6 +9,9 @@ spec:
     deploy: true
     enableOauth: false
     enableSamplePipeline: true
+    cABundle:
+      configMapName: nginx-tls-config
+      configMapKey: rootCA.crt
     pipelineStorage: kubernetes
     webhookAnnotations:
       cert-manager.io/inject-ca-from: opendatahub/dspa-webhook-cert

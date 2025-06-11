@@ -50,18 +50,17 @@ func (suite *IntegrationTestSuite) TestPipelineSuccessfulRun() {
 		}
 		// Apply the Pipeline and PipelineVersion Kubernetes resources
 		yamlPath := "resources/test-k8s-pipeline.yaml"
-		certPath := "../.github/resources/webhook"
-		TestUtil.ApplyPipelineYAML(t, yamlPath, certPath, suite.DSPANamespace)
+		TestUtil.ApplyPipelineYAML(t, yamlPath, suite.DSPANamespace)
 
 		suite.runPipelineTest(t, "test-k8s-pipeline-run")
 	})
 }
 
-func (suite *IntegrationTestSuite) runPipelineTest(t *testing.T, pipelineName string) {
-	pipelineID, err := TestUtil.RetrievePipelineId(t, suite.Clientmgr.httpClient, APIServerURL, pipelineName)
+func (suite *IntegrationTestSuite) runPipelineTest(t *testing.T, pipelineDisplayName string) {
+	pipelineID, err := TestUtil.RetrievePipelineId(t, suite.Clientmgr.httpClient, APIServerURL, pipelineDisplayName)
 	require.NoError(t, err)
 	postUrl := fmt.Sprintf("%s/apis/v2beta1/runs", APIServerURL)
-	body := TestUtil.FormatRequestBody(t, pipelineID, pipelineName)
+	body := TestUtil.FormatRequestBody(t, pipelineID, pipelineDisplayName)
 	contentType := "application/json"
 
 	response, err := suite.Clientmgr.httpClient.Post(postUrl, contentType, bytes.NewReader(body))
