@@ -127,7 +127,7 @@ unittest: manifests generate fmt vet envtest ## Run tests.
 
 .PHONY: functest
 functest: manifests generate fmt vet envtest ## Run tests.
-	export SSL_CERT_FILE=${ROOT_DIR}/controllers/testdata/tls/ca-bundle.crt && KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... --tags=test_functional -coverprofile cover.out
+	export SSL_CERT_FILE=${ROOT_DIR}/controllers/testdata/tls/ca-bundle.crt && export DSPO_NAMESPACE=opendatahub && KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... --tags=test_functional -coverprofile cover.out
 
 .PHONY: integrationtest
 integrationtest: ## Run integration tests
