@@ -23,6 +23,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -57,6 +58,20 @@ func (r *DSPAReconciler) ReconcileWebhook(ctx context.Context, params *DSPAParam
 
 func (r *DSPAReconciler) CleanUpWebhookIfUnused(ctx context.Context, dspa *dspav1.DataSciencePipelinesApplication, params *DSPAParams) error {
 	log := r.Log.WithValues("namespace", params.DSPONamespace, "dspa_name", dspa.Name)
+	webhookDeployment := &appsv1.Deployment{}
+	webhookName := types.NamespacedName{
+		Name:      "ds-pipelines-webhook",
+		Namespace: params.DSPONamespace,
+	}
+
+	if err := r.Client.Get(ctx, webhookName, webhookDeployment); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("No webhook deployment found. Skipping webhook resource cleanup.")
+			return nil
+		}
+		log.Error(err, "Failed to check for webhook deployment")
+		return err
+	}
 
 	hasK8sDSPAs, err := r.checkAvailableKubernetesDSPAs(ctx, dspa.Name, dspa.Namespace)
 	if err != nil {
