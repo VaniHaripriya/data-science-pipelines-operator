@@ -144,7 +144,7 @@ func (suite *IntegrationTestSuite) TestDSPADeploymentWithK8sNativeApi() {
 		timeout := 120 * time.Second
 		interval := 2 * time.Second
 		dspoNamespace := "opendatahub"
-		webhookName := "ds-pipeline-webhook"
+		webhookName := "ds-pipelines-webhook"
 
 		require.Eventually(t, func() bool {
 			podList := &corev1.PodList{}
