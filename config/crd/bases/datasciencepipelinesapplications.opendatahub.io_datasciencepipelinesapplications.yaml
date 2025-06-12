@@ -192,6 +192,15 @@ spec:
                             type: string
                         type: object
                     type: object
+                  pipelineStorage:
+                    default: database
+                    description: |-
+                      The storage for pipeline definitions (pipelines and pipeline versions). It can be
+                      either 'database' or 'kubernetes' (Pipeline and PipelineVersion kinds). Defaults to 'database'.
+                    enum:
+                    - database
+                    - kubernetes
+                    type: string
                   resources:
                     description: Specify custom Pod resource requirements for this
                       component.
@@ -240,6 +249,12 @@ spec:
                       Toolbox image used for basic container spec runtime operations
                       in managed pipelines.
                     type: string
+                  webhookAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: WebhookAnnotations is a map of annotations to add
+                      to the webhook.
+                    type: object
                 type: object
               database:
                 default:
@@ -1170,6 +1185,15 @@ spec:
                       Image used for internal artifact passing handling within Tekton taskruns. This field specifies the image used in the 'move-all-results-to-tekton-home' step.
                       Deprecated: DSP V1 only, will be removed in the future.
                     type: string
+                  pipelineStorage:
+                    default: database
+                    description: |-
+                      The storage for pipeline definitions (pipelines and pipeline versions). It can be
+                      either 'database' or 'kubernetes' (Pipeline and PipelineVersion kinds). Defaults to 'database'.
+                    enum:
+                    - database
+                    - kubernetes
+                    type: string
                   resources:
                     description: Specify custom Pod resource requirements for this
                       component.
@@ -1240,6 +1264,12 @@ spec:
                       Default: true
                       Deprecated: DSP V1 only, will be removed in the future.
                     type: boolean
+                  webhookAnnotations:
+                    additionalProperties:
+                      type: string
+                    description: WebhookAnnotations is a map of annotations to add
+                      to the webhook.
+                    type: object
                 type: object
               database:
                 default:
