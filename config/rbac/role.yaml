@@ -79,6 +79,8 @@ rules:
   - validatingwebhookconfigurations
   verbs:
   - create
+  - list
+  - watch
 - apiGroups:
   - admissionregistration.k8s.io
   resourceNames:

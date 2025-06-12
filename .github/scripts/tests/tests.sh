@@ -154,7 +154,7 @@ wait_for_dependencies() {
   echo "---------------------------------"
   kubectl wait -n $MARIADB_NAMESPACE --timeout=60s --for=condition=Available=true deployment mariadb
   kubectl wait -n $MINIO_NAMESPACE --timeout=60s --for=condition=Available=true deployment minio
-  kubectl wait -n $PYPISERVER_NAMESPACE --timeout=60s --for=condition=Available=true deployment pypi-server  
+  kubectl wait -n $PYPISERVER_NAMESPACE --timeout=60s --for=condition=Available=true deployment pypi-server
 }
 
 upload_python_packages_to_pypi_server() {
@@ -272,7 +272,7 @@ setup_kind_requirements() {
   create_namespace_dspa_external_connections
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
-  apply_pip_server_configmap  
+  apply_pip_server_configmap
 }
 
 setup_openshift_ci_requirements() {
@@ -290,7 +290,7 @@ setup_openshift_ci_requirements() {
   create_namespace_dspa_external_connections
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
-  apply_pip_server_configmap  
+  apply_pip_server_configmap
 }
 
 setup_rhoai_requirements() {
@@ -303,7 +303,7 @@ setup_rhoai_requirements() {
   create_namespace_dspa_external_connections
   create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
-  apply_pip_server_configmap  
+  apply_pip_server_configmap
 }
 
 # Run
