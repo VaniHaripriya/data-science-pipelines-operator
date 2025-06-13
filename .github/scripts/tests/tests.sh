@@ -16,13 +16,16 @@ CLEAN_INFRA=false
 K8SAPISERVERHOST=""
 DSPA_NAMESPACE="test-dspa"
 DSPA_EXTERNAL_NAMESPACE="dspa-ext"
+DSPA_K8S_NAMESPACE="test-k8s-dspa"
 MINIO_NAMESPACE="test-minio"
 MARIADB_NAMESPACE="test-mariadb"
 PYPISERVER_NAMESPACE="test-pypiserver"
+CERT_MANAGER_NAMESPACE="cert-manager"
 DSPA_DEPLOY_WAIT_TIMEOUT="300"
 INTEGRATION_TESTS_DIR="${GIT_WORKSPACE}/tests"
 DSPA_PATH="${GIT_WORKSPACE}/tests/resources/dspa-lite.yaml"
 DSPA_EXTERNAL_PATH="${GIT_WORKSPACE}/tests/resources/dspa-external-lite.yaml"
+DSPA_K8S_PATH="${GIT_WORKSPACE}/tests/resources/dspa-k8s.yaml"
 CONFIG_DIR="${GIT_WORKSPACE}/config"
 RESOURCES_DIR_CRD="${GIT_WORKSPACE}/.github/resources"
 OPENDATAHUB_NAMESPACE="opendatahub"
@@ -31,8 +34,23 @@ ENDPOINT_TYPE="service"
 DSPO_IMAGE_REF="${DSPO_IMAGE_REF:-}"
 CONTAINER_CLI="${CONTAINER_CLI:-docker}"
 RUN_PKG_UPLOADER_IN_CONTAINER="${RUN_PKG_UPLOADER_IN_CONTAINER:-true}"
+DSPO_IMAGE_REF="${DSPO_IMAGE_REF:-}"
+CONTAINER_CLI="${CONTAINER_CLI:-docker}"
+RUN_PKG_UPLOADER_IN_CONTAINER="${RUN_PKG_UPLOADER_IN_CONTAINER:-true}"
 
 get_dspo_image() {
+  if [ ! -z "$DSPO_IMAGE_REF" ]; then
+    echo $DSPO_IMAGE_REF
+  else
+    if [ -z "$REGISTRY_ADDRESS" ]; then
+      # this function is called by `IMG=$(get_dspo_image)` that captures the standard output of get_dspo_image
+      set -x
+      echo "REGISTRY_ADDRESS variable not defined."
+      exit 1
+    fi
+    local image="${REGISTRY_ADDRESS}/data-science-pipelines-operator"
+    echo $image
+  fi
   if [ ! -z "$DSPO_IMAGE_REF" ]; then
     echo $DSPO_IMAGE_REF
   else
@@ -75,12 +93,21 @@ deploy_argo_lite() {
   echo "Deploy Argo Lite"
   echo "---------------------------------"
   ( cd "${GIT_WORKSPACE}/.github/resources/argo-lite" && kubectl -n $OPENDATAHUB_NAMESPACE apply -k . )
+  ( cd "${GIT_WORKSPACE}/.github/resources/argo-lite" && kubectl -n $OPENDATAHUB_NAMESPACE apply -k . )
 }
 
 deploy_dspo() {
   IMG=$(get_dspo_image)
   echo "---------------------------------"
   echo "Deploying DSPO: $IMG"
+  echo "---------------------------------"
+  ( cd $GIT_WORKSPACE && make deploy -e IMG="$IMG" )
+}
+
+deploy_dspo_kind() {
+  IMG=$(get_dspo_image)
+  echo "---------------------------------"
+  echo "Push DSPO Image and Deploying DSPO on Kind: $IMG"
   echo "---------------------------------"
   ( cd $GIT_WORKSPACE && make deploy -e IMG="$IMG" )
 }
@@ -103,6 +130,7 @@ deploy_minio() {
   echo "Deploy Minio"
   echo "---------------------------------"
   ( cd "${GIT_WORKSPACE}/.github/resources/minio" && kubectl -n $MINIO_NAMESPACE apply -k . )
+  ( cd "${GIT_WORKSPACE}/.github/resources/minio" && kubectl -n $MINIO_NAMESPACE apply -k . )
 }
 
 deploy_mariadb() {
@@ -113,6 +141,7 @@ deploy_mariadb() {
   echo "---------------------------------"
   echo "Deploy MariaDB"
   echo "---------------------------------"
+  ( cd "${GIT_WORKSPACE}/.github/resources/mariadb" && kubectl -n $MARIADB_NAMESPACE apply -k . )
   ( cd "${GIT_WORKSPACE}/.github/resources/mariadb" && kubectl -n $MARIADB_NAMESPACE apply -k . )
 }
 
@@ -125,6 +154,18 @@ deploy_pypi_server() {
   echo "Deploy pypi-server"
   echo "---------------------------------"
   ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl -n $PYPISERVER_NAMESPACE apply -k . )
+  ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl -n $PYPISERVER_NAMESPACE apply -k . )
+}
+
+deploy_cert_manager() {
+  echo "---------------------------------"
+  echo "Create Cert Manager Namespace"
+  echo "---------------------------------"
+  kubectl create namespace $CERT_MANAGER_NAMESPACE
+  echo "---------------------------------"
+  echo "Deploy Cert Manager"
+  echo "---------------------------------"
+  ( kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml )
 }
 
 wait_for_dspo_dependencies() {
@@ -164,6 +205,13 @@ create_namespace_dspa_external_connections() {
   kubectl create namespace $DSPA_EXTERNAL_NAMESPACE
 }
 
+create_dspa_k8s_namespace() {
+  echo "---------------------------------"
+  echo "Create DSPA Namespace with Kubernetes Pipeline Storage"
+  echo "---------------------------------"
+  kubectl create namespace $DSPA_K8S_NAMESPACE
+}
+
 apply_mariadb_minio_secrets_configmaps_external_namespace() {
   echo "---------------------------------"
   echo "Apply MariaDB and Minio Secrets and Configmaps in the External Namespace"
@@ -175,7 +223,17 @@ apply_pip_server_configmap() {
   echo "---------------------------------"
   echo "Apply PIP Server ConfigMap"
   echo "---------------------------------"
-  ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl apply -f $RESOURCES_DIR_PYPI/nginx-tls-config.yaml -n $DSPA_NAMESPACE )
+  for ns in $DSPA_NAMESPACE $DSPA_K8S_NAMESPACE; do
+    echo "Applying ConfigMap in namespace: $ns"
+    ( cd "${GIT_WORKSPACE}/.github/resources/pypiserver/base" && kubectl apply -f "$RESOURCES_DIR_PYPI/nginx-tls-config.yaml" -n "$ns" )
+  done
+}
+
+apply_webhook_certs() {
+  echo "---------------------------------"
+  echo "Apply Webhook Certs"
+  echo "---------------------------------"
+  ( cd "${GIT_WORKSPACE}/.github/resources/webhook" && kubectl -n $OPENDATAHUB_NAMESPACE apply -k . )
 }
 
 run_tests() {
@@ -192,6 +250,20 @@ run_tests_dspa_external_connections() {
   ( cd $GIT_WORKSPACE && make integrationtest K8SAPISERVERHOST=${K8SAPISERVERHOST} DSPANAMESPACE=${DSPA_EXTERNAL_NAMESPACE} DSPAPATH=${DSPA_EXTERNAL_PATH} ENDPOINT_TYPE=${ENDPOINT_TYPE} MINIONAMESPACE=${MINIO_NAMESPACE} )
 }
 
+run_tests_dspa_k8s() {
+  echo "---------------------------------"
+  echo "Run tests for DSPA with Kubernetes Pipeline Storage"
+  echo "---------------------------------"
+  if [ "$TARGET" = "kind" ]; then
+    echo "Detected kind target: deploying cert-manager"
+    deploy_cert_manager
+    echo "Waiting for Cert Manager pods to be ready"
+    kubectl wait -n $CERT_MANAGER_NAMESPACE --timeout=90s --for=condition=Ready pods --all
+    apply_webhook_certs
+  fi
+  ( cd $GIT_WORKSPACE && make integrationtest K8SAPISERVERHOST=${K8SAPISERVERHOST} DSPANAMESPACE=${DSPA_K8S_NAMESPACE} DSPAPATH=${DSPA_K8S_PATH} ENDPOINT_TYPE=${ENDPOINT_TYPE})
+}
+
 undeploy_kind_resources() {
   echo "---------------------------------"
   echo "Clean up resources created for testing on kind"
@@ -205,6 +277,7 @@ remove_namespace_created_for_rhoai() {
   echo "---------------------------------"
   kubectl delete projects $DSPA_NAMESPACE --now || true
   kubectl delete projects $DSPA_EXTERNAL_NAMESPACE --now || true
+  kubectl delete projects $DSPA_K8S_NAMESPACE --now || true
   kubectl delete projects $MINIO_NAMESPACE --now || true
   kubectl delete projects $MARIADB_NAMESPACE --now || true
   kubectl delete projects $PYPISERVER_NAMESPACE --now || true
@@ -224,6 +297,7 @@ setup_kind_requirements() {
   upload_python_packages_to_pypi_server
   create_dspa_namespace
   create_namespace_dspa_external_connections
+  create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
 }
@@ -241,6 +315,7 @@ setup_openshift_ci_requirements() {
   upload_python_packages_to_pypi_server
   create_dspa_namespace
   create_namespace_dspa_external_connections
+  create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
 }
@@ -253,6 +328,7 @@ setup_rhoai_requirements() {
   upload_python_packages_to_pypi_server
   create_dspa_namespace
   create_namespace_dspa_external_connections
+  create_dspa_k8s_namespace
   apply_mariadb_minio_secrets_configmaps_external_namespace
   apply_pip_server_configmap
 }
@@ -309,6 +385,16 @@ while [ "$#" -gt 0 ]; do
         exit 1
       fi
       ;;
+    --dspa-k8s-namespace)
+      shift
+      if [[ -n "$1" ]]; then
+        DSPA_K8S_NAMESPACE="$1"
+        shift
+      else
+        echo "Error: --dspa-k8s-namespace requires a value"
+        exit 1
+      fi
+      ;;
     --dspa-path)
       shift
       if [[ -n "$1" ]]; then
@@ -326,6 +412,16 @@ while [ "$#" -gt 0 ]; do
         shift
       else
         echo "Error: --external-dspa-path requires a value"
+        exit 1
+      fi
+      ;;
+    --dspa-k8s-path)
+      shift
+      if [[ -n "$1" ]]; then
+        DSPA_K8S_PATH="$1"
+        shift
+      else
+        echo "Error: --dspa-k8s-path requires a value"
         exit 1
       fi
       ;;
@@ -377,3 +473,4 @@ fi
 
 run_tests
 run_tests_dspa_external_connections
+run_tests_dspa_k8s
