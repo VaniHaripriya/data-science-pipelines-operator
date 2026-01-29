@@ -2,6 +2,11 @@ name: KinD DSPO/DSP Integration Tests
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+      - stable
+      - v*.*.*
   pull_request:
     paths:
       - go.mod
