@@ -45,6 +45,10 @@ import (
 
 const MlmdIsRequired = "MLMD explicitly disabled in DSPA, but is a required component for DSP"
 
+// ErrManagedPipelinesImageUnset is returned by ExtractParams when managed pipelines is enabled
+// but neither spec.apiServer.managedPipelines.image nor operator Images.PipelinesComponents resolves to a real image.
+var ErrManagedPipelinesImageUnset = errors.New("managedPipelines init image not configured")
+
 type DSPAParams struct {
 	IncludeOwnerReference                 bool
 	UID                                   types.UID
@@ -108,6 +112,16 @@ type DSPAParams struct {
 	// CompiledPipelineSpecPatch is a JSON patch applied to all compiled pipeline specs
 	// Used for global workflow configuration like TTL strategy
 	CompiledPipelineSpecPatch string
+
+	// PlatformVersion is DSPO.PlatformVersion from operator config (default + quote-trimmed). Used for sample_config and managed pipeline upload tags.
+	PlatformVersion string
+	// ManagedPipelinesUploadTags is set when managedPipelines is enabled; injected as MANAGED_PIPELINES_UPLOAD_TAGS for the
+	// pipelines-components init (comma-separated key=value). Init applies to Pipeline and PipelineVersion per API contract.
+	ManagedPipelinesUploadTags string
+	// ManagedPipelineImageEnvVars are RELATED_IMAGE_* variables parsed from
+	// DSPO.ManagedPipelinesImages JSON mapping, forwarded to the managed-pipelines init
+	// container when enabled.
+	ManagedPipelineImageEnvVars []ManagedPipelineImageEnvVar
 }
 
 type DBConnection struct {
@@ -590,6 +604,63 @@ func setResourcesDefault(defaultValue dspa.ResourceRequirements, value **dspa.Re
 	}
 }
 
+// ensureManagedPipelinesInitResourceDefaults applies baseline requests/limits for the managed-pipelines init
+// container so it is never unbounded when the CR omits resources or only sets a subset of CPU/memory.
+func ensureManagedPipelinesInitResourceDefaults(mp *dspa.ManagedPipelinesSpec) {
+	if mp == nil {
+		return
+	}
+	def := config.ManagedPipelinesInitResourceRequirements
+	if mp.Resources == nil {
+		mp.Resources = def.DeepCopy()
+		return
+	}
+	r := mp.Resources
+	if r.Requests == nil && r.Limits == nil {
+		mp.Resources = def.DeepCopy()
+		return
+	}
+	if r.Requests == nil {
+		r.Requests = def.Requests.DeepCopy()
+	} else {
+		if r.Requests.CPU.IsZero() {
+			r.Requests.CPU = def.Requests.CPU
+		}
+		if r.Requests.Memory.IsZero() {
+			r.Requests.Memory = def.Requests.Memory
+		}
+	}
+	if r.Limits == nil {
+		r.Limits = def.Limits.DeepCopy()
+	} else {
+		if r.Limits.CPU.IsZero() {
+			r.Limits.CPU = def.Limits.CPU
+		}
+		if r.Limits.Memory.IsZero() {
+			r.Limits.Memory = def.Limits.Memory
+		}
+	}
+}
+
+// ensureManagedPipelinesVolumeSizeLimit sets a default emptyDir sizeLimit and validates the quantity when set.
+func ensureManagedPipelinesVolumeSizeLimit(mp *dspa.ManagedPipelinesSpec) error {
+	if mp == nil {
+		return nil
+	}
+	if mp.VolumeSizeLimit == "" {
+		mp.VolumeSizeLimit = config.DefaultManagedPipelinesVolumeSizeLimit
+		return nil
+	}
+	q, err := resource.ParseQuantity(mp.VolumeSizeLimit)
+	if err != nil {
+		return fmt.Errorf("managedPipelines.volumeSizeLimit must be a valid Kubernetes quantity: %w", err)
+	}
+	if q.Sign() <= 0 {
+		return fmt.Errorf("managedPipelines.volumeSizeLimit must be a positive quantity, got %q", mp.VolumeSizeLimit)
+	}
+	return nil
+}
+
 func (p *DSPAParams) LoadMlmdCertificates(ctx context.Context, client client.Client) (bool, error) {
 	secret, err := util.GetSecret(ctx, "ds-pipeline-metadata-grpc-tls-certs-"+p.Name, p.Namespace, client)
 	if err != nil {
@@ -611,6 +682,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 	p.DSPVersion = dsp.Spec.DSPVersion
 	p.Owner = dsp
 	p.APIServer = dsp.Spec.APIServer.DeepCopy()
+	p.PlatformVersion = config.ResolvedPlatformVersion()
 	p.APIServerDefaultResourceName = apiServerDefaultResourceNamePrefix + dsp.Name
 	p.APIServerServiceName = fmt.Sprintf("%s-%s", config.DSPServicePrefix, p.Name)
 	p.APIServerServiceDNSName = fmt.Sprintf("%s.%s.svc.cluster.local", p.APIServerServiceName, p.Namespace)
@@ -654,6 +726,30 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 		setStringDefault(serverImageFromConfig, &p.APIServer.Image)
 		setStringDefault(argoLauncherImageFromConfig, &p.APIServer.ArgoLauncherImage)
 		setStringDefault(argoDriverImageFromConfig, &p.APIServer.ArgoDriverImage)
+
+		if p.APIServer.ManagedPipelines != nil {
+			// Whitespace-only overrides are treated as omitted so operator defaulting applies (CRD allows arbitrary strings).
+			p.APIServer.ManagedPipelines.Image = strings.TrimSpace(p.APIServer.ManagedPipelines.Image)
+			pipelinesComponentsImageFromConfig := config.GetStringConfigWithDefault(config.PipelinesComponentsImagePath, config.DefaultImageValue)
+			setStringDefault(pipelinesComponentsImageFromConfig, &p.APIServer.ManagedPipelines.Image)
+			// setStringDefault only overwrites when the image is "". Missing operator config: GetStringConfigWithDefault
+			// returns DefaultImageValue ("MustSetInConfig"), which is assigned. With AllowEmptyEnv, an empty
+			// IMAGES_PIPELINES_COMPONENTS yields "" from viper and setStringDefault leaves Image "". Reject both.
+			if p.APIServer.ManagedPipelines.Image == config.DefaultImageValue || p.APIServer.ManagedPipelines.Image == "" {
+				return fmt.Errorf("%w: specify spec.apiServer.managedPipelines.image or configure operator Images.PipelinesComponents (IMAGES_PIPELINES_COMPONENTS in DSPO params/config)", ErrManagedPipelinesImageUnset)
+			}
+			ensureManagedPipelinesInitResourceDefaults(p.APIServer.ManagedPipelines)
+			if err := ensureManagedPipelinesVolumeSizeLimit(p.APIServer.ManagedPipelines); err != nil {
+				return err
+			}
+			p.ManagedPipelinesUploadTags = config.BuildManagedPipelinesUploadTags(p.PlatformVersion)
+			rawManagedPipelineImages := config.GetStringConfigWithDefault(config.ManagedPipelinesImagesConfigName, "{}")
+			managedImageEnvVars, err := ManagedPipelineImageEnvFromJSON(rawManagedPipelineImages)
+			if err != nil {
+				return err
+			}
+			p.ManagedPipelineImageEnvVars = managedImageEnvVars
+		}
 
 		setResourcesDefault(config.APIServerResourceRequirements, &p.APIServer.Resources)
 

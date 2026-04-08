@@ -72,9 +72,34 @@ type ManagedPipelineOptions struct {
 	State ManagedPipelineState `json:"state,omitempty"`
 }
 
-// The technology preview InstructLab pipeline was removed and this field is reserved for future managed pipeline
-// options.
-type ManagedPipelinesSpec struct{}
+type ManagedPipeline struct {
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=`^[A-Za-z0-9._-]+$`
+	Name string `json:"name"`
+}
+
+// ManagedPipelinesSpec configures the init-managed-pipelines container (pipelines-components bundle).
+// Init contract: shared volume at /config/managed-pipelines; env PIPELINE_NAMES (comma-separated keys matching Name pattern) or ALL_PIPELINES=true;
+// MANAGED_PIPELINES_UPLOAD_TAGS (managed=true and rhoai-version from DSPO platform version). The same tag env is set on the ds-pipeline-api-server container.
+// Init writes <name>.yaml per pipeline and managed-pipelines.json on the volume.
+type ManagedPipelinesSpec struct {
+	// Container image for the init-managed-pipelines step (pipelines-components). Optional: when omitted, empty (""), or whitespace-only, DSPO uses operator config Images.PipelinesComponents
+	// (populated from IMAGES_PIPELINES_COMPONENTS in params.env / dspo-config). Set explicitly only to override the operator default for this DSPA.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength=1024
+	Image string `json:"image,omitempty"`
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MinItems=1
+	Pipelines []ManagedPipeline `json:"pipelines,omitempty"`
+	// +kubebuilder:validation:Optional
+	Resources *ResourceRequirements `json:"resources,omitempty"`
+	// VolumeSizeLimit caps the managed-pipelines emptyDir volume (Kubernetes quantity, e.g. "1024Mi"). Default: 1024Mi.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:MaxLength=64
+	VolumeSizeLimit string `json:"volumeSizeLimit,omitempty"`
+}
 
 type APIServer struct {
 	// Enable DS Pipelines Operator management of DSP API Server. Setting Deploy to false disables operator reconciliation. Default: true
@@ -96,8 +121,7 @@ type APIServer struct {
 	ArgoLauncherImage string `json:"argoLauncherImage,omitempty"`
 	// Driver image used during pipeline execution.
 	ArgoDriverImage string `json:"argoDriverImage,omitempty"`
-	// The technology preview InstructLab pipeline was removed and this field is reserved for future managed pipeline
-	// options.
+	// Configures managed pipelines compiled and uploaded via an init container.
 	ManagedPipelines *ManagedPipelinesSpec `json:"managedPipelines,omitempty"`
 	// Specify custom Pod resource requirements for this component.
 	Resources *ResourceRequirements `json:"resources,omitempty"`
