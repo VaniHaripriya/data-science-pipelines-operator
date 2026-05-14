@@ -851,9 +851,6 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 				// Retrieve internal MLflow service endpoint for use in API Server MLflow plugin config.
 				mlflowEndpoint, err := p.RetrieveMLflowEndpoint(ctx, client, log)
 				if err == nil {
-					// Temporary workaround: force MLflow API base path expected by plugin calls.
-					mlflowEndpoint = strings.TrimRight(mlflowEndpoint, "/") + "/mlflow"
-
 					apiServerExternalURL, routeErr := util.GetRouteHostname(ctx, p.APIServerServiceName, p.Namespace, client)
 					if routeErr != nil {
 						log.Info("Unable to retrieve API server route for KFP base URL", "error", routeErr)
