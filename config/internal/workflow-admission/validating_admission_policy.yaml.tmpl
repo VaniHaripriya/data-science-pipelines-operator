@@ -1,0 +1,37 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: ds-pipeline-workflow-policy-{{.Namespace}}-{{.Name}}
+  labels:
+    component: data-science-pipelines
+    dspa: {{.Name}}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - argoproj.io
+      apiVersions:
+      - v1alpha1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - workflows
+      - workflowtemplates
+      - cronworkflows
+      scope: Namespaced
+  validations:
+  - expression: "request.resource.resource == 'cronworkflows' ? !has(object.spec.workflowSpec.hostNetwork) || object.spec.workflowSpec.hostNetwork == false : !has(object.spec.hostNetwork) || object.spec.hostNetwork == false"
+    message: "hostNetwork=true is not allowed for Argo workflows"
+  - expression: "request.resource.resource == 'cronworkflows' ? !has(object.spec.workflowSpec.podSpecPatch) || object.spec.workflowSpec.podSpecPatch == '' : !has(object.spec.podSpecPatch) || object.spec.podSpecPatch == ''"
+    message: "podSpecPatch is not allowed for Argo workflows"
+  - expression: "request.resource.resource == 'cronworkflows' ? has(object.spec.workflowSpec.serviceAccountName) && object.spec.workflowSpec.serviceAccountName == '{{.PipelineRunnerServiceAccountName}}' : has(object.spec.serviceAccountName) && object.spec.serviceAccountName == '{{.PipelineRunnerServiceAccountName}}'"
+    message: "serviceAccountName must be set to {{.PipelineRunnerServiceAccountName}}"
+  - expression: "request.resource.resource == 'cronworkflows' ? !has(object.spec.workflowSpec.templates) || object.spec.workflowSpec.templates.all(t, !has(t.hostNetwork) || t.hostNetwork == false) : !has(object.spec.templates) || object.spec.templates.all(t, !has(t.hostNetwork) || t.hostNetwork == false)"
+    message: "template hostNetwork=true is not allowed"
+  - expression: "request.resource.resource == 'cronworkflows' ? !has(object.spec.workflowSpec.templates) || object.spec.workflowSpec.templates.all(t, !has(t.podSpecPatch) || t.podSpecPatch == '') : !has(object.spec.templates) || object.spec.templates.all(t, !has(t.podSpecPatch) || t.podSpecPatch == '')"
+    message: "template podSpecPatch is not allowed"
+  - expression: "request.resource.resource == 'cronworkflows' ? !has(object.spec.workflowSpec.templates) || object.spec.workflowSpec.templates.all(t, !has(t.serviceAccountName) || t.serviceAccountName == '{{.PipelineRunnerServiceAccountName}}') : !has(object.spec.templates) || object.spec.templates.all(t, !has(t.serviceAccountName) || t.serviceAccountName == '{{.PipelineRunnerServiceAccountName}}')"
+    message: "template serviceAccountName must be unset or set to {{.PipelineRunnerServiceAccountName}}"

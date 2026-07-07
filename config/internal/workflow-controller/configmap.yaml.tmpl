@@ -36,3 +36,7 @@ data:
       secretKeySecret:
         name: "{{.ObjectStorageConnection.CredentialsSecret.SecretName}}"
         key: "{{.ObjectStorageConnection.CredentialsSecret.SecretKey}}"
+  workflowDefaults: |
+    spec:
+      serviceAccountName: {{.PipelineRunnerServiceAccountName}}
+      hostNetwork: false

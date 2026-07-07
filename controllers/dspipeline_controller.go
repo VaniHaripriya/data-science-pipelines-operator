@@ -924,5 +924,9 @@ func (r *DSPAReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *DSPAReconciler) cleanUpResources(params *DSPAParams) error {
 	DeleteMetrics(params.Name, params.Namespace)
 
+	if err := r.DeleteWorkflowAdmission(params); err != nil {
+		return err
+	}
+
 	return r.CleanUpCommon(params)
 }

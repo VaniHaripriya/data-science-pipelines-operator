@@ -1,0 +1,19 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: ds-pipeline-workflow-policy-binding-{{.Namespace}}-{{.Name}}
+  labels:
+    component: data-science-pipelines
+    dspa: {{.Name}}
+spec:
+  policyName: ds-pipeline-workflow-policy-{{.Namespace}}-{{.Name}}
+  validationActions:
+  - Deny
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values:
+        - {{.Namespace}}

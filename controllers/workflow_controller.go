@@ -65,20 +65,32 @@ func (r *DSPAReconciler) ReconcileWorkflowController(dsp *dspav1.DataSciencePipe
 	switch argoWorkflowsControllersConfig.GetManagementState() {
 	case "Managed", "":
 		if dsp.Spec.WorkflowController == nil || !dsp.Spec.WorkflowController.Deploy {
-			log.Info("Skipping Application of WorkflowController Resources")
+			log.Info("WorkflowController disabled; removing Workflow Admission resources (if present)")
+			err := r.DeleteWorkflowAdmission(params)
+			if err != nil {
+				return workflowControllerEnabled, err
+			}
 			return workflowControllerEnabled, nil
 		}
 
 		log.Info("Applying WorkflowController Resources")
 		workflowControllerEnabled = true
-		err := r.ApplyDir(dsp, params, workflowControllerTemplatesDir)
+		err := r.ReconcileWorkflowAdmission(dsp, params)
+		if err != nil {
+			return workflowControllerEnabled, err
+		}
+		err = r.ApplyDir(dsp, params, workflowControllerTemplatesDir)
 		if err != nil {
 			return workflowControllerEnabled, err
 		}
 
 	case "Removed":
 		log.Info("Removing WorkflowController Resources (if present)")
-		err := r.DeleteResourceDir(params, workflowControllerTemplatesDir)
+		err := r.DeleteWorkflowAdmission(params)
+		if err != nil {
+			return workflowControllerEnabled, err
+		}
+		err = r.DeleteResourceDir(params, workflowControllerTemplatesDir)
 		if err != nil {
 			return workflowControllerEnabled, err
 		}

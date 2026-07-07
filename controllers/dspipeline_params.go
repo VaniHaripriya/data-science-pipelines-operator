@@ -69,6 +69,7 @@ type DSPAParams struct {
 	PersistenceAgent                      *dspa.PersistenceAgent
 	PersistentAgentDefaultResourceName    string
 	WorkflowControllerDefaultResourceName string
+	PipelineRunnerServiceAccountName      string
 	MariaDB                               *dspa.MariaDB
 	Minio                                 *dspa.Minio
 	MLMD                                  *dspa.MLMD
@@ -693,6 +694,7 @@ func (p *DSPAParams) ExtractParams(ctx context.Context, dsp *dspa.DataSciencePip
 	p.ScheduledWorkflowDefaultResourceName = scheduledWorkflowDefaultResourceNamePrefix + dsp.Name
 	p.WorkflowController = dsp.Spec.WorkflowController.DeepCopy()
 	p.WorkflowControllerDefaultResourceName = workflowControllerDefaultResourceNamePrefix + dsp.Name
+	p.PipelineRunnerServiceAccountName = "pipeline-runner-" + dsp.Name
 	p.PersistenceAgent = dsp.Spec.PersistenceAgent.DeepCopy()
 	p.PersistentAgentDefaultResourceName = persistenceAgentDefaultResourceNamePrefix + dsp.Name
 	p.MariaDB = dsp.Spec.Database.MariaDB.DeepCopy()
