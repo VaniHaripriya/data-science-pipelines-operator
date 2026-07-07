@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   annotations:
-    build.appstudio.openshift.io/repo: https://github.com/red-hat-data-services/data-science-pipelines-operator?rev={{revision}}
+    build.appstudio.openshift.io/repo: https://gitlab.cee.redhat.com/rhoai/private/data-science-pipelines-operator?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
@@ -17,7 +17,7 @@ metadata:
     appstudio.openshift.io/component: odh-data-science-pipelines-operator-controller-v3-4
     pipelines.appstudio.openshift.io/type: build
   name: odh-data-science-pipelines-operator-controller-v3-4-on-push
-  namespace: rhoai-tenant
+  namespace: rhoai-private-tenant
 spec:
   params:
   - name: git-url
@@ -28,9 +28,9 @@ spec:
     value:
     - '{{target_branch}}-{{revision}}'
   - name: output-image
-    value: quay.io/rhoai/odh-data-science-pipelines-operator-controller-rhel9:{{target_branch}}
+    value: quay.io/rhoai-private/odh-data-science-pipelines-operator-controller-rhel9:{{target_branch}}
   - name: rhoai-version
-    value: "3.4.0"
+    value: "3.4.3"
   - name: dockerfile
     value: Dockerfile.konflux
   - name: path-context
@@ -53,6 +53,8 @@ spec:
     - linux/x86_64
     - linux-m2xlarge/arm64
     - linux/ppc64le
+  - name: disable-slack-notifications
+    value: "true"
   pipelineRef:
     resolver: git
     params:
