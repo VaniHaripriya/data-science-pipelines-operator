@@ -67,7 +67,7 @@ spec:
     - name: pathInRepo
       value: pipelines/multi-arch-container-build.yaml
   taskRunTemplate:
-    serviceAccountName: build-pipeline-pull-request-pipelines
+    serviceAccountName: build-pipeline-odh-data-science-pipelines-operator-controller-v3-4
   workspaces:
   - name: git-auth
     secret:
