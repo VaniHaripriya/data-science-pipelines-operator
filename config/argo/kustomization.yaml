@@ -4,10 +4,8 @@ namespace: argo
 resources:
 # Deploy Argo Resources
 
-# The following manifests are used in ALL Executors
-- clusterrole.argo-aggregate-to-admin.yaml
-- clusterrole.argo-aggregate-to-edit.yaml
-- clusterrole.argo-aggregate-to-view.yaml
+# In RHOAI, users should not receive aggregate Argo workflow CRUD via admin/edit/view.
+# Workflows are created by DSP API paths, not direct user CRUD on argoproj.io resources.
 - clusterrole.argo-cluster-role.yaml
 - clusterrolebinding.ds-pipeline-argo-binding.yaml
 - configmap.workflow-controller-configmap.yaml
