@@ -23,6 +23,7 @@ import (
 
 	dspav1 "github.com/opendatahub-io/data-science-pipelines-operator/api/v1"
 	"github.com/opendatahub-io/data-science-pipelines-operator/controllers/testutil"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -77,7 +78,7 @@ func TestReconcileWorkflowAdmissionCreatesPolicyAndBinding(t *testing.T) {
 	policy := &admissionregistrationv1.ValidatingAdmissionPolicy{}
 	err = reconciler.Get(ctx, types.NamespacedName{Name: "ds-pipeline-workflow-policy-" + testNamespace + "-" + testDSPAName}, policy)
 	assert.Nil(t, err)
-	assert.Len(t, policy.Spec.Validations, 8)
+	assert.Len(t, policy.Spec.Validations, 9)
 	assert.Equal(t, "serviceAccountName must be set to "+params.PipelineRunnerServiceAccountName, policy.Spec.Validations[2].Message)
 
 	binding := &admissionregistrationv1.ValidatingAdmissionPolicyBinding{}
@@ -176,9 +177,41 @@ func TestWorkflowAdmissionPolicyContainsDenyRulesForUnsafeWorkflowFields(t *test
 	assert.Contains(t, allExpressions, "podSpecPatch")
 	assert.Contains(t, allExpressions, "hostpath")
 	assert.Contains(t, allExpressions, params.PipelineRunnerServiceAccountName)
+	assert.Contains(t, allExpressions, "\"?privileged\"?")
+	assert.Contains(t, allExpressions, "container.securityContext")
 
 	assert.Contains(t, allMessages, "hostNetwork=true is not allowed")
 	assert.Contains(t, allMessages, "podSpecPatch contains disallowed privileged or host-level settings")
 	assert.Contains(t, allMessages, "serviceAccountName must be set to "+params.PipelineRunnerServiceAccountName)
 	assert.Contains(t, allMessages, "hostPath volumes are not allowed")
+	assert.Contains(t, allMessages, "template container privileged=true is not allowed")
+}
+
+func TestReconcileWorkflowControllerRemovedStateDeletesAdmissionResources(t *testing.T) {
+	t.Cleanup(func() { viper.Reset() })
+
+	testNamespace := "testnamespace"
+	testDSPAName := "testdspa"
+	dspa := newWorkflowAdmissionTestDSPA(testNamespace, testDSPAName, true)
+	ctx, params, reconciler := CreateNewTestObjects()
+
+	err := params.ExtractParams(ctx, dspa, reconciler.Client, reconciler.Log)
+	assert.Nil(t, err)
+
+	enabled, err := reconciler.ReconcileWorkflowController(dspa, params)
+	assert.Nil(t, err)
+	assert.True(t, enabled)
+
+	viper.Set("DSPO.ArgoWorkflowsControllers", "{\"managementState\":\"Removed\"}")
+	enabled, err = reconciler.ReconcileWorkflowController(dspa, params)
+	assert.Nil(t, err)
+	assert.False(t, enabled)
+
+	policy := &admissionregistrationv1.ValidatingAdmissionPolicy{}
+	err = reconciler.Get(ctx, types.NamespacedName{Name: "ds-pipeline-workflow-policy-" + testNamespace + "-" + testDSPAName}, policy)
+	assert.True(t, apierrs.IsNotFound(err))
+
+	binding := &admissionregistrationv1.ValidatingAdmissionPolicyBinding{}
+	err = reconciler.Get(ctx, types.NamespacedName{Name: "ds-pipeline-workflow-policy-binding-" + testNamespace + "-" + testDSPAName}, binding)
+	assert.True(t, apierrs.IsNotFound(err))
 }

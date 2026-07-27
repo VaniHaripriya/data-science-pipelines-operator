@@ -23,6 +23,8 @@ import (
 	dspav1 "github.com/opendatahub-io/data-science-pipelines-operator/api/v1"
 	"github.com/stretchr/testify/assert"
 	networkingv1 "k8s.io/api/networking/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestDeployCommonPolicies(t *testing.T) {
@@ -59,6 +61,12 @@ func TestDeployCommonPolicies(t *testing.T) {
 	err := params.ExtractParams(ctx, dspa, reconciler.Client, reconciler.Log)
 	assert.Nil(t, err)
 
+	// Seed legacy aggregate roles and assert ReconcileCommon removes them.
+	for _, roleName := range legacyArgoAggregateClusterRoles {
+		err = reconciler.Create(ctx, &rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{Name: roleName}})
+		assert.Nil(t, err)
+	}
+
 	// Assert Common NetworkPolicies don't yet exist
 	np := &networkingv1.NetworkPolicy{}
 	created, err := reconciler.IsResourceCreated(ctx, np, expectedNetworkPolicyName, testNamespace)
@@ -84,4 +92,11 @@ func TestDeployCommonPolicies(t *testing.T) {
 	created, err = reconciler.IsResourceCreated(ctx, np, expectedEnvoyNetworkPolicyName, testNamespace)
 	assert.True(t, created)
 	assert.Nil(t, err)
+
+	legacyRole := &rbacv1.ClusterRole{}
+	for _, roleName := range legacyArgoAggregateClusterRoles {
+		created, err = reconciler.IsResourceCreated(ctx, legacyRole, roleName, "")
+		assert.False(t, created)
+		assert.Nil(t, err)
+	}
 }

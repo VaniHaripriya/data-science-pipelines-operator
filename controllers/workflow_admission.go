@@ -17,8 +17,11 @@ limitations under the License.
 package controllers
 
 import (
+	"fmt"
+
 	dspav1 "github.com/opendatahub-io/data-science-pipelines-operator/api/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 )
 
 var workflowAdmissionTemplatesDir = "workflow-admission"
@@ -38,6 +41,9 @@ func (r *DSPAReconciler) ReconcileWorkflowAdmission(dsp *dspav1.DataSciencePipel
 
 	for _, template := range workflowAdmissionTemplates {
 		if err := r.ApplyWithoutOwner(params, workflowAdmissionTemplatesDir+"/"+template); err != nil {
+			if apimeta.IsNoMatchError(err) {
+				return fmt.Errorf("workflow admission requires ValidatingAdmissionPolicy support (admissionregistration.k8s.io/v1), which needs Kubernetes >=1.30 (OpenShift >=4.17). Ensure the cluster version meets this requirement: %w", err)
+			}
 			return err
 		}
 	}

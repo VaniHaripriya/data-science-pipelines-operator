@@ -16,12 +16,23 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
+
 	dspav1 "github.com/opendatahub-io/data-science-pipelines-operator/api/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var commonTemplatesDir = "common/default"
 
 const commonCusterRolebindingTemplate = "common/no-owner/clusterrolebinding.yaml.tmpl"
+
+var legacyArgoAggregateClusterRoles = []string{
+	"argo-aggregate-to-admin",
+	"argo-aggregate-to-edit",
+	"argo-aggregate-to-view",
+}
 
 func (r *DSPAReconciler) ReconcileCommon(dsp *dspav1.DataSciencePipelinesApplication, params *DSPAParams) error {
 	log := r.Log.WithValues("namespace", dsp.Namespace).WithValues("dspa_name", dsp.Name)
@@ -35,6 +46,9 @@ func (r *DSPAReconciler) ReconcileCommon(dsp *dspav1.DataSciencePipelinesApplica
 	if err != nil {
 		return err
 	}
+	if err = r.DeleteLegacyArgoAggregateClusterRoles(context.Background()); err != nil {
+		return err
+	}
 
 	log.Info("Finished applying Common Resources")
 	return nil
@@ -44,6 +58,18 @@ func (r *DSPAReconciler) CleanUpCommon(params *DSPAParams) error {
 	err := r.DeleteResource(params, commonCusterRolebindingTemplate)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (r *DSPAReconciler) DeleteLegacyArgoAggregateClusterRoles(ctx context.Context) error {
+	for _, roleName := range legacyArgoAggregateClusterRoles {
+		role := &rbacv1.ClusterRole{
+			ObjectMeta: metav1.ObjectMeta{Name: roleName},
+		}
+		if err := r.Delete(ctx, role); err != nil && !apierrs.IsNotFound(err) {
+			return err
+		}
 	}
 	return nil
 }
