@@ -19,7 +19,6 @@ limitations under the License.
 package controllers
 
 import (
-	"context"
 	"testing"
 
 	dspav1 "github.com/opendatahub-io/data-science-pipelines-operator/api/v1"
@@ -28,10 +27,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 // resetGlobalDSPAMetricsForTests clears all label sets on shared Prometheus gauges.
@@ -146,15 +142,6 @@ func TestCleanUpResources_DeletesMetrics(t *testing.T) {
 	}
 	_, _, reconciler := CreateNewTestObjects()
 
-	policyName := "ds-pipeline-workflow-policy-" + testNamespace + "-" + testName
-	bindingName := "ds-pipeline-workflow-policy-binding-" + testNamespace + "-" + testName
-	require.NoError(t, reconciler.Create(context.Background(), &admissionregistrationv1.ValidatingAdmissionPolicy{
-		ObjectMeta: metav1.ObjectMeta{Name: policyName},
-	}))
-	require.NoError(t, reconciler.Create(context.Background(), &admissionregistrationv1.ValidatingAdmissionPolicyBinding{
-		ObjectMeta: metav1.ObjectMeta{Name: bindingName},
-	}))
-
 	err := reconciler.cleanUpResources(params)
 	require.NoError(t, err)
 
@@ -165,14 +152,6 @@ func TestCleanUpResources_DeletesMetrics(t *testing.T) {
 		"DBAvailableMetric should be removed after cleanUpResources")
 	assert.Equal(t, 0, testutil.CollectAndCount(ManagedPipelineValidMetric),
 		"ManagedPipelineValidMetric should be removed after cleanUpResources")
-
-	policy := &admissionregistrationv1.ValidatingAdmissionPolicy{}
-	err = reconciler.Get(context.Background(), types.NamespacedName{Name: policyName}, policy)
-	assert.True(t, apierrs.IsNotFound(err))
-
-	binding := &admissionregistrationv1.ValidatingAdmissionPolicyBinding{}
-	err = reconciler.Get(context.Background(), types.NamespacedName{Name: bindingName}, binding)
-	assert.True(t, apierrs.IsNotFound(err))
 }
 
 func TestSetManagedPipelineValidMetricByReason_OneHotByReason(t *testing.T) {

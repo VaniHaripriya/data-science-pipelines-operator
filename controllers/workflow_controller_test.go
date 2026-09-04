@@ -25,6 +25,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestDeployWorkflowController(t *testing.T) {
@@ -83,6 +86,25 @@ func TestDeployWorkflowController(t *testing.T) {
 	assert.True(t, created)
 	assert.Nil(t, err)
 
+	role := &rbacv1.Role{}
+	err = reconciler.Get(ctx, types.NamespacedName{
+		Name:      "ds-pipeline-workflow-controller-role-" + testDSPAName,
+		Namespace: testNamespace,
+	}, role)
+	assert.Nil(t, err)
+	for _, rule := range role.Rules {
+		assert.NotContains(t, rule.Resources, "pods/exec")
+	}
+
+	cm := &corev1.ConfigMap{}
+	err = reconciler.Get(ctx, types.NamespacedName{
+		Name:      "ds-pipeline-workflow-controller-" + testDSPAName,
+		Namespace: testNamespace,
+	}, cm)
+	assert.Nil(t, err)
+	assert.Contains(t, cm.Data["workflowDefaults"], "serviceAccountName: "+params.PipelineRunnerServiceAccountName)
+	assert.Contains(t, cm.Data["workflowDefaults"], "hostNetwork: false")
+	assert.Contains(t, cm.Data["workflowDefaults"], "hostPID: false")
 }
 
 func TestDontDeployWorkflowController(t *testing.T) {
